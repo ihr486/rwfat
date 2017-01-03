@@ -4,8 +4,8 @@
 #include <stdint.h>
 #include <stdio.h>
 
-#define THINFAT_SECTOR_SIZE (512UL)
-#define THINFAT_INVALID_CLUSTER (0x0FFFFFF7UL)
+#define THINFAT_SECTOR_SIZE (512)
+#define THINFAT_INVALID_CLUSTER (0x0FFFFFF7)
 
 #define THINFAT_IS_CLUSTER_VALID(c) ((c) < THINFAT_INVALID_CLUSTER)
 
@@ -14,6 +14,15 @@
 
 typedef uint32_t thinfat_sector_t;
 typedef uint32_t thinfat_cluster_t;
+typedef uint32_t thinfat_param_t;
+
+typedef enum
+{
+  THINFAT_EVENT_FIND_PARTITION,
+  THINFAT_EVENT_MOUNT,
+  THINFAT_EVENT_UNMOUNT
+}
+thinfat_event_t;
 
 typedef enum
 {

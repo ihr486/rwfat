@@ -1,17 +1,18 @@
 #include "thinfat.h"
+#include "thinfat_phy.h"
 
 static thinfat_type_t thinfat_determine_type(const thinfat_t *tf)
 {
-    thinfat_cluster_t cluster_count = (tf->sc_volume_size - tf->si_data) >> tf->cluster_shift;
-    if (cluster_count < 4085)
-    {
-        return THINFAT_TYPE_UNKNOWN;
-    }
-    else if (cluster_count < 65525)
-    {
-        return THINFAT_TYPE_FAT16;
-    }
-    return THINFAT_TYPE_FAT32;
+  thinfat_cluster_t cluster_count = (tf->sc_volume_size - tf->si_data) >> tf->cluster_shift;
+  if (cluster_count < 4085)
+  {
+    return THINFAT_TYPE_UNKNOWN;
+  }
+  else if (cluster_count < 65525)
+  {
+    return THINFAT_TYPE_FAT16;
+  }
+  return THINFAT_TYPE_FAT32;
 }
 
 thinfat_result_t thinfat_read_parameter_block_callback(void *_tf, void *bpb)
@@ -128,13 +129,20 @@ static thinfat_result_t thinfat_read_mbr_callback(void *_tf, void *mbr)
   return THINFAT_RESULT_NO_PARTITION;
 }
 
-thinfat_result_t thinfat_mount(thinfat_t *tf, thinfat_user_callback_t callback)
+thinfat_result_t thinfat_find_partition(thinfat_t *tf)
 {
-  thinfat_result_t res;
-  res = thinfat_phy_read_single(tf->phy, 0, THINFAT_TABLE_CACHE(tf), thinfat_read_mbr_callback);
+  thinfat_result_t res = thinfat_phy_read_single(tf->phy, 0, THINFAT_TABLE_CACHE(tf), thinfat_read_mbr_callback);
   if (res != THINFAT_RESULT_OK)
     return res;
-  tf->callback = callback;
+  return THINFAT_RESULT_OK;
+}
+
+thinfat_result_t thinfat_mount(thinfat_t *tf, thinfat_sector_t sector)
+{
+  thinfat_result_t res;
+  res = thinfat_phy_read_single(tf->phy, sector, THINFAT_TABLE_CACHE(tf), thinfat_read_parameter_block_callback);
+  if (res != THINFAT_RESULT_OK)
+    return res;
   return THINFAT_RESULT_OK;
 }
 
@@ -143,9 +151,10 @@ thinfat_result_t thinfat_unmount(thinfat_t *tf)
   return THINFAT_RESULT_OK;
 }
 
-thinfat_result_t thinfat_initialize(thinfat_t *tf, struct thinfat_phy_tag *phy)
+thinfat_result_t thinfat_initialize(thinfat_t *tf, struct thinfat_phy_tag *phy, thinfat_user_callback_t callback)
 {
   tf->phy = phy;
+  tf->callback = callback;
   return THINFAT_RESULT_OK;
 }
 

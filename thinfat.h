@@ -7,7 +7,7 @@
 #define THINFAT_DATA_CACHE(tf) ((tf)->data_cache)
 
 struct thinfat_tag;
-typedef void (*thinfat_user_callback_t)(struct thinfat_tag *tf);
+typedef void (*thinfat_user_callback_t)(struct thinfat_tag *tf, thinfat_event_t event, thinfat_param_t param1, thinfat_param_t param2);
 
 typedef uint8_t thinfat_cache_t[THINFAT_SECTOR_SIZE];
 
@@ -68,10 +68,11 @@ static inline uint32_t thinfat_read_u32(void *p, size_t offset)
     return ((uint8_t *)p)[offset] | ((uint32_t)((uint8_t *)p)[offset + 1] << 8) | ((uint32_t)((uint8_t *)p)[offset + 2] << 16) | ((uint32_t)((uint8_t *)p)[offset + 3] << 24);
 }
 
-thinfat_result_t thinfat_initialize(thinfat_t *tf, struct thinfat_phy_tag *phy);
+thinfat_result_t thinfat_initialize(thinfat_t *tf, struct thinfat_phy_tag *phy, thinfat_user_callback_t callback);
 thinfat_result_t thinfat_finalize(thinfat_t *tf);
 
-thinfat_result_t thinfat_mount(thinfat_t *tf, thinfat_user_callback_t callback);
+thinfat_result_t thinfat_find_partition(thinfat_t *tf);
+thinfat_result_t thinfat_mount(thinfat_t *tf, thinfat_sector_t sector);
 thinfat_result_t thinfat_unmount(thinfat_t *tf);
 
 #endif
