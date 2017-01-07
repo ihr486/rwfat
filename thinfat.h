@@ -6,9 +6,6 @@
 #define THINFAT_TABLE_CACHE(tf) ((tf)->table_cache)
 #define THINFAT_DATA_CACHE(tf) ((tf)->data_cache)
 
-struct thinfat_tag;
-typedef void (*thinfat_user_callback_t)(struct thinfat_tag *tf, thinfat_event_t event, thinfat_param_t param1, thinfat_param_t param2);
-
 typedef uint8_t thinfat_cache_t[THINFAT_SECTOR_SIZE];
 
 typedef enum
@@ -27,7 +24,7 @@ typedef enum
 }
 thinfat_type_t;
 
-typedef struct
+typedef struct thinfat_tag
 {
   thinfat_type_t type;
   thinfat_state_t state;
@@ -44,9 +41,10 @@ typedef struct
   thinfat_sector_t si_data;
   thinfat_sector_t si_hidden;
   thinfat_cluster_t ci_current_dir;
-  thinfat_user_callback_t callback;
 }
 thinfat_t;
+
+thinfat_result_t thinfat_user_callback(thinfat_t *tf, thinfat_event_t event, thinfat_sector_t s_param, void *p_param);
 
 static inline uint8_t thinfat_read_u8(void *p, size_t offset)
 {
@@ -68,7 +66,7 @@ static inline uint32_t thinfat_read_u32(void *p, size_t offset)
     return ((uint8_t *)p)[offset] | ((uint32_t)((uint8_t *)p)[offset + 1] << 8) | ((uint32_t)((uint8_t *)p)[offset + 2] << 16) | ((uint32_t)((uint8_t *)p)[offset + 3] << 24);
 }
 
-thinfat_result_t thinfat_initialize(thinfat_t *tf, struct thinfat_phy_tag *phy, thinfat_user_callback_t callback);
+thinfat_result_t thinfat_initialize(thinfat_t *tf, struct thinfat_phy_tag *phy);
 thinfat_result_t thinfat_finalize(thinfat_t *tf);
 
 thinfat_result_t thinfat_find_partition(thinfat_t *tf);

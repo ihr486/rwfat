@@ -1,5 +1,26 @@
+/*!
+ * @file thinfat.c
+ * @brief Main source file of RivieraWaves FAT driver
+ * @date 2017/01/07
+ * @author Hiroka IHARA
+ */
 #include "thinfat.h"
 #include "thinfat_phy.h"
+
+static thinfat_result_t thinfat_read_mbr_callback(thinfat_t *tf, void *mbr);
+static thinfat_result_t thinfat_read_parameter_block_callback(thinfat_t *tf, void *bpb);
+
+thinfat_result_t thinfat_phy_callback(void *instance, thinfat_phy_event_t event, thinfat_sector_t s_param, void *p_param)
+{
+  switch(event)
+  {
+  case THINFAT_PHY_EVENT_READ_MBR:
+    return thinfat_read_mbr_callback((thinfat_t *)instance, *(void **)p_param);
+  case THINFAT_PHY_EVENT_READ_BPB:
+    return thinfat_read_parameter_block_callback((thinfat_t *)instance, *(void **)p_param);
+  }
+  return THINFAT_RESULT_OK;
+}
 
 static thinfat_type_t thinfat_determine_type(const thinfat_t *tf)
 {
@@ -15,9 +36,8 @@ static thinfat_type_t thinfat_determine_type(const thinfat_t *tf)
   return THINFAT_TYPE_FAT32;
 }
 
-thinfat_result_t thinfat_read_parameter_block_callback(void *_tf, void *bpb)
+static thinfat_result_t thinfat_read_parameter_block_callback(thinfat_t *tf, void *bpb)
 {
-  thinfat_t *tf = (thinfat_t *)_tf;
   uint16_t signature = thinfat_read_u16(bpb, 510);
   if (signature != 0xAA55)
   {
@@ -89,16 +109,8 @@ thinfat_result_t thinfat_read_parameter_block_callback(void *_tf, void *bpb)
   return THINFAT_RESULT_OK;
 }
 
-static thinfat_result_t thinfat_read_parameter_block(thinfat_t *tf)
+static thinfat_result_t thinfat_read_mbr_callback(thinfat_t *tf, void *mbr)
 {
-  thinfat_result_t res;
-  res = thinfat_phy_read_single(tf->phy, tf->si_hidden, THINFAT_TABLE_CACHE(tf), thinfat_read_parameter_block_callback);
-  return res;
-}
-
-static thinfat_result_t thinfat_read_mbr_callback(void *_tf, void *mbr)
-{
-  thinfat_t *tf = (thinfat_t *)_tf;
   uint16_t signature = thinfat_read_u16(mbr, 510);
   if (signature != 0xAA55)
   {
@@ -116,13 +128,13 @@ static thinfat_result_t thinfat_read_mbr_callback(void *_tf, void *mbr)
     case 0x0C:
       tf->si_hidden = thinfat_read_u32(mbr, 446 + i * 16 + 8);
       THINFAT_INFO("Partition %u@%u: FAT32(LBA)\n", i, tf->si_hidden);
-      return thinfat_read_parameter_block(tf);
+      return THINFAT_RESULT_OK;
     case 0x04:
     case 0x06:
     case 0x0E:
       tf->si_hidden = thinfat_read_u32(mbr, 446 + i * 16 + 8);
       THINFAT_INFO("Partition %u@%u: FAT16(LBA)\n", i, tf->si_hidden);
-      return thinfat_read_parameter_block(tf);
+      return THINFAT_RESULT_OK;
     }
   }
   THINFAT_ERROR("No partition found on the disk.\n");
@@ -131,19 +143,12 @@ static thinfat_result_t thinfat_read_mbr_callback(void *_tf, void *mbr)
 
 thinfat_result_t thinfat_find_partition(thinfat_t *tf)
 {
-  thinfat_result_t res = thinfat_phy_read_single(tf->phy, 0, THINFAT_TABLE_CACHE(tf), thinfat_read_mbr_callback);
-  if (res != THINFAT_RESULT_OK)
-    return res;
-  return THINFAT_RESULT_OK;
+  return thinfat_phy_read_single(tf->phy, 0, THINFAT_TABLE_CACHE(tf), THINFAT_PHY_EVENT_READ_MBR);
 }
 
 thinfat_result_t thinfat_mount(thinfat_t *tf, thinfat_sector_t sector)
 {
-  thinfat_result_t res;
-  res = thinfat_phy_read_single(tf->phy, sector, THINFAT_TABLE_CACHE(tf), thinfat_read_parameter_block_callback);
-  if (res != THINFAT_RESULT_OK)
-    return res;
-  return THINFAT_RESULT_OK;
+  return thinfat_phy_read_single(tf->phy, sector, THINFAT_TABLE_CACHE(tf), THINFAT_PHY_EVENT_READ_BPB);
 }
 
 thinfat_result_t thinfat_unmount(thinfat_t *tf)
@@ -151,10 +156,9 @@ thinfat_result_t thinfat_unmount(thinfat_t *tf)
   return THINFAT_RESULT_OK;
 }
 
-thinfat_result_t thinfat_initialize(thinfat_t *tf, struct thinfat_phy_tag *phy, thinfat_user_callback_t callback)
+thinfat_result_t thinfat_initialize(thinfat_t *tf, struct thinfat_phy_tag *phy)
 {
   tf->phy = phy;
-  tf->callback = callback;
   return THINFAT_RESULT_OK;
 }
 
