@@ -56,34 +56,6 @@ thinfat_result_t thinfat_core_callback(void *instance, thinfat_core_event_t even
   return THINFAT_RESULT_OK;
 }
 
-/*static thinfat_result_t thinfat_traverse_dir_callback(thinfat_t *tf, void **block)
-{
-  if (block == NULL)
-  {
-    if (tf->ci_current_dir == 0)
-    {
-      return THINFAT_RESULT_OK;
-    }
-    else
-    {
-      return thinfat_lookup(tf, tf->ci_current, THINFAT_PHY_EVENT_TRAVERSE_DIR);
-    }
-  }
-  else
-  {
-    if (*block == NULL)
-    {
-      *block = THINFAT_DIR_CACHE(tf);
-      return THINFAT_RESULT_OK;
-    }
-    else
-    {
-
-      return THINFAT_RESULT_OK;
-    }
-  }
-}*/
-
 static thinfat_type_t thinfat_determine_type(const thinfat_t *tf)
 {
   thinfat_cluster_t cluster_count = (tf->sc_volume_size - tf->si_data) >> tf->ctos_shift;
@@ -237,10 +209,6 @@ thinfat_result_t thinfat_finalize(thinfat_t *tf)
   return THINFAT_RESULT_OK;
 }
 
-/*thinfat_result_t thinfat_traverse_dir(thinfat_t *tf)
+thinfat_result_t thinfat_traverse_dir(thinfat_t *tf)
 {
-  if (tf->ci_current_dir == 0)
-    return thinfat_phy_read_single(tf->phy, thinfat_root_sector(tf), thinfat_root_sector_count(tf), THINFAT_PHY_EVENT_TRAVERSE_DIR);
-  else
-    return thinfat_phy_read_single(tf->phy, thinfat_ctos(tf, tf->ci_current_dir), 1 << tf->ctos_shift, THINFAT_PHY_EVENT_TRAVERSE_DIR);
-}*/
+}
