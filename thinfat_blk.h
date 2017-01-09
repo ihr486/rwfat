@@ -29,11 +29,12 @@ typedef struct thinfat_blk_tag
   thinfat_cluster_t ci_head;
   thinfat_cluster_t ci_current;
   thinfat_sector_t so_current;
-  thinfat_core_event_t event;
+  thinfat_core_event_t event, seek_event;
   struct thinfat_cache_tag *cache;
+  void *next_data;
+  thinfat_sector_t so_seek;
   union
   {
-    thinfat_sector_t so_seek;
     thinfat_sector_t sc_read;
     thinfat_sector_t sc_write;
   };
@@ -46,5 +47,7 @@ thinfat_result_t thinfat_blk_open(thinfat_blk_t *blk, thinfat_cluster_t ci);
 thinfat_result_t thinfat_blk_rewind(thinfat_blk_t *blk);
 thinfat_result_t thinfat_blk_seek(void *client, thinfat_blk_t *blk, thinfat_sector_t so_seek, thinfat_core_event_t event);
 thinfat_result_t thinfat_blk_read_each_sector(void *client, thinfat_blk_t *blk, thinfat_sector_t sc_read, thinfat_core_event_t event);
+thinfat_result_t thinfat_blk_read_each_cluster(void *client, thinfat_blk_t *blk, thinfat_sector_t sc_read, thinfat_core_event_t event);
+thinfat_result_t thinfat_blk_write_each_cluster(void *client, thinfat_blk_t *blk, thinfat_sector_t sc_write, thinfat_core_event_t event);
 
 #endif

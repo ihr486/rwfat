@@ -1,3 +1,10 @@
+/*!
+ * @file thinfat_cache.h
+ * @brief Cache layer interface for RivieraWaves FAT driver
+ * @date 2017/01/09
+ * @author Hiroka IHARA
+ */
+
 #ifndef THINFAT_CACHE_H
 #define THINFAT_CACHE_H
 
@@ -19,7 +26,16 @@ typedef struct thinfat_cache_tag
   void *client;
   thinfat_cache_state_t state;
   thinfat_core_event_t event;
-  thinfat_sector_t si_cached, si_replace;
+  thinfat_sector_t si_cached;
+  union
+  {
+    thinfat_sector_t si_replace;
+  };
+  union
+  {
+    thinfat_sector_t sc_read;
+    thinfat_sector_t sc_write;
+  };
   uint8_t data[THINFAT_SECTOR_SIZE];
 }
 thinfat_cache_t;
