@@ -1,3 +1,10 @@
+/*!
+ * @file thinfat.h
+ * @brief Public interface for RivieraWaves FAT driver
+ * @date 2017/01/08
+ * @author Hiroka IHARA
+ */
+
 #ifndef THINFAT_H
 #define THINFAT_H
 
@@ -5,8 +12,10 @@
 
 #define THINFAT_TABLE_CACHE(tf) ((tf)->table_cache)
 #define THINFAT_DATA_CACHE(tf) ((tf)->data_cache)
-
-typedef uint8_t thinfat_cache_t[THINFAT_SECTOR_SIZE];
+#define THINFAT_DIR_CACHE(tf) ((tf)->dir_cache)
+#define THINFAT_SI_TABLE_CACHE(tf) ((tf)->si_table_cache)
+#define THINFAT_SI_DATA_CACHE(tf) ((tf)->si_data_cache)
+#define THINFAT_SI_DIR_CACHE(tf) ((tf)->si_dir_cache)
 
 typedef enum
 {
@@ -15,12 +24,14 @@ typedef enum
 thinfat_state_t;
 
 struct thinfat_phy_tag;
+struct thinfat_blk_tag;
+struct thinfat_cache_tag;
 
 typedef enum
 {
-    THINFAT_TYPE_UNKNOWN = 0,
-    THINFAT_TYPE_FAT16,
-    THINFAT_TYPE_FAT32
+  THINFAT_TYPE_UNKNOWN = 0,
+  THINFAT_TYPE_FAT16 = 1,
+  THINFAT_TYPE_FAT32 = 2
 }
 thinfat_type_t;
 
@@ -29,9 +40,10 @@ typedef struct thinfat_tag
   thinfat_type_t type;
   thinfat_state_t state;
   struct thinfat_phy_tag *phy;
-  thinfat_cache_t table_cache;
-  thinfat_cache_t data_cache;
-  uint8_t cluster_shift;
+  struct thinfat_blk_tag *blk;
+  struct thinfat_blk_tag *cur_file, *cur_dir;
+  struct thinfat_cache_tag *cache;
+  uint8_t ctos_shift;
   uint8_t table_redundancy;
   thinfat_sector_t sc_reserved;
   uint16_t root_entry_count;
@@ -40,7 +52,7 @@ typedef struct thinfat_tag
   thinfat_cluster_t ci_root;
   thinfat_sector_t si_data;
   thinfat_sector_t si_hidden;
-  thinfat_cluster_t ci_current_dir;
+  thinfat_sector_t si_root;
 }
 thinfat_t;
 

@@ -9,6 +9,8 @@
 #include <stdlib.h>
 #include "thinfat.h"
 #include "thinfat_phy.h"
+#include "thinfat_blk.h"
+#include "thinfat_cache.h"
 
 thinfat_result_t thinfat_user_callback(thinfat_t *tf, thinfat_event_t event, thinfat_sector_t s_param, void *p_param)
 {
@@ -17,6 +19,15 @@ thinfat_result_t thinfat_user_callback(thinfat_t *tf, thinfat_event_t event, thi
   case THINFAT_EVENT_FIND_PARTITION:
     printf("Mounting partition at 0x%08X\n", s_param);
     thinfat_mount(tf, s_param);
+    break;
+  case THINFAT_EVENT_MOUNT:
+    printf("Partition at 0x%08X mounted.\n", s_param);
+    thinfat_blk_read_each_sector(tf, tf->cur_dir, 32, THINFAT_USER_EVENT + 1);
+    break;
+  case THINFAT_USER_EVENT + 1:
+    printf("User event #1 detected.\n");
+    break;
+  case THINFAT_EVENT_UNMOUNT:
     break;
   }
   return THINFAT_RESULT_OK;
@@ -33,13 +44,13 @@ int main(int argc, const char *argv[])
   }
 
   thinfat_phy_t phy;
-  thinfat_t tf;
-  if (thinfat_phy_initialize(&phy, &tf, argv[1]) != THINFAT_RESULT_OK)
+  if (thinfat_phy_initialize(&phy, argv[1]) != THINFAT_RESULT_OK)
   {
     fprintf(stderr, "Failed to initialize the PHY.\n");
     return EXIT_FAILURE;
   }
 
+  thinfat_t tf;
   if (thinfat_initialize(&tf, &phy) != THINFAT_RESULT_OK)
   {
     fprintf(stderr, "Failed to initialize thinFAT.\n");
