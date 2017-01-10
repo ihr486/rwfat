@@ -220,7 +220,7 @@ thinfat_result_t thinfat_blk_seek(void *client, thinfat_blk_t *blk, thinfat_sect
   return THINFAT_RESULT_OK;
 }
 
-thinfat_result_t thinfat_blk_read_each_sector(void *client, thinfat_blk_t *blk, thinfat_sector_t sc_read, thinfat_core_event_t event)
+thinfat_result_t thinfat_blk_read_each_sector(void *client, thinfat_blk_t *blk, thinfat_sector_t sc_read, void *initial, thinfat_core_event_t event)
 {
   if (blk->state != THINFAT_BLK_STATE_IDLE)
     return THINFAT_RESULT_BLK_BUSY;

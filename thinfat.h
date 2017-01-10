@@ -84,5 +84,6 @@ thinfat_result_t thinfat_finalize(thinfat_t *tf);
 thinfat_result_t thinfat_find_partition(thinfat_t *tf);
 thinfat_result_t thinfat_mount(thinfat_t *tf, thinfat_sector_t sector);
 thinfat_result_t thinfat_unmount(thinfat_t *tf);
+thinfat_result_t thinfat_dump_current_dir(thinfat_t *tf);
 
 #endif
