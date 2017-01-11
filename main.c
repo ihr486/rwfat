@@ -7,6 +7,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <pthread.h>
 #include "thinfat.h"
 #include "thinfat_phy.h"
 #include "thinfat_blk.h"
@@ -18,11 +19,11 @@ thinfat_result_t thinfat_user_callback(thinfat_t *tf, thinfat_event_t event, thi
   {
   case THINFAT_EVENT_FIND_PARTITION:
     printf("Mounting partition at 0x%08X\n", s_param);
-    thinfat_mount(tf, s_param);
+    thinfat_mount(tf, s_param, THINFAT_EVENT_MOUNT);
     break;
   case THINFAT_EVENT_MOUNT:
     printf("Partition at 0x%08X mounted.\n", s_param);
-    thinfat_blk_read_each_sector(tf, tf->cur_dir, 32, THINFAT_USER_EVENT + 1);
+    thinfat_dump_current_directory(tf, THINFAT_USER_EVENT + 1);
     break;
   case THINFAT_USER_EVENT + 1:
     printf("User event #1 detected.\n");
@@ -58,7 +59,7 @@ int main(int argc, const char *argv[])
   }
 
   //thinfat_find_partition(&tf);
-  thinfat_mount(&tf, 0);
+  thinfat_mount(&tf, 0, THINFAT_EVENT_MOUNT);
 
   while(!thinfat_phy_is_idle(&phy))
   {

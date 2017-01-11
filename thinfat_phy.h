@@ -35,6 +35,31 @@ typedef struct thinfat_phy_tag
 }
 thinfat_phy_t;
 
+typedef struct thinfat_time_tag
+{
+  union
+  {
+    uint16_t time;
+    struct
+    {
+      uint16_t second2 : 5;
+      uint16_t minute : 6;
+      uint16_t hour : 5;
+    };
+  };
+  union
+  {
+    uint16_t date;
+    struct
+    {
+      uint16_t day : 5;
+      uint16_t month : 4;
+      uint16_t year : 7;
+    };
+  };
+}
+thinfat_time_t;
+
 thinfat_result_t thinfat_core_callback(void *client, thinfat_core_event_t event, thinfat_sector_t s_param, void *p_param);
 
 thinfat_result_t thinfat_phy_initialize(thinfat_phy_t *phy, const char *devpath);
@@ -45,5 +70,6 @@ thinfat_result_t thinfat_phy_read_single(void *client, thinfat_phy_t *phy, thinf
 thinfat_result_t thinfat_phy_write_single(void *client, thinfat_phy_t *phy, thinfat_sector_t sector, void *block, thinfat_core_event_t event);
 thinfat_result_t thinfat_phy_read_multiple(void *client, thinfat_phy_t *phy, thinfat_sector_t sector, thinfat_sector_t count, thinfat_core_event_t event);
 thinfat_result_t thinfat_phy_write_multiple(void *client, thinfat_phy_t *phy, thinfat_sector_t sector, thinfat_sector_t count, thinfat_core_event_t event);
+thinfat_result_t thinfat_phy_get_time(thinfat_phy_t *phy, thinfat_time_t *data);
 
 #endif

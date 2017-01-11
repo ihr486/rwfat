@@ -10,6 +10,7 @@
 #include "thinfat_cache.h"
 
 #include <stdlib.h>
+#include <string.h>
 
 static inline thinfat_cluster_t thinfat_stoc(thinfat_t *tf, thinfat_sector_t si)
 {
@@ -25,6 +26,7 @@ thinfat_result_t thinfat_blk_callback(thinfat_blk_t *blk, thinfat_core_event_t e
 {
   thinfat_t *tf = (thinfat_t *)blk->parent;
   thinfat_result_t res;
+  blk->state = THINFAT_BLK_STATE_IDLE;
   switch(event)
   {
   case THINFAT_BLK_EVENT_LOOKUP:
@@ -44,16 +46,19 @@ thinfat_result_t thinfat_blk_callback(thinfat_blk_t *blk, thinfat_core_event_t e
     blk->so_current += (1 << tf->ctos_shift);
     blk->state = THINFAT_BLK_STATE_IDLE;
     if (THINFAT_IS_CLUSTER_VALID(blk->ci_current))
-      return thinfat_blk_seek(blk->client, blk, blk->so_seek, blk->seek_event);
+      return thinfat_blk_seek(blk->seek_client, blk, blk->so_seek, blk->seek_event);
     else
-      return THINFAT_RESULT_EOF;
+      return thinfat_core_callback(blk->client, blk->event, THINFAT_INVALID_SECTOR, NULL);
   case THINFAT_BLK_EVENT_READ_SINGLE:
-    blk->state = THINFAT_BLK_STATE_IDLE;
-    if ((res = thinfat_core_callback(blk->client, blk->event, s_param, p_param)) == THINFAT_RESULT_OK)
+    if ((res = thinfat_core_callback(blk->client, blk->event, s_param, *(void **)p_param)) == THINFAT_RESULT_OK)
     {
       if (--blk->sc_read > 0)
       {
         return thinfat_blk_seek(blk, blk, blk->so_current + 1, THINFAT_BLK_EVENT_READ_SINGLE_LOOKUP);
+      }
+      else
+      {
+        return thinfat_core_callback(blk->client, blk->event, THINFAT_INVALID_SECTOR, NULL);
       }
     }
     else
@@ -62,11 +67,10 @@ thinfat_result_t thinfat_blk_callback(thinfat_blk_t *blk, thinfat_core_event_t e
     }
     break;
   case THINFAT_BLK_EVENT_READ_SINGLE_LOOKUP:
-    blk->state = THINFAT_BLK_STATE_IDLE;
     return thinfat_blk_read_each_sector(blk->client, blk, blk->sc_read, blk->event);
   case THINFAT_BLK_EVENT_READ_CLUSTER_LOOKUP:
     if (!THINFAT_IS_CLUSTER_VALID(blk->ci_current))
-      return THINFAT_RESULT_EOF;
+      return thinfat_core_callback(blk->client, blk->event, THINFAT_INVALID_SECTOR, NULL);
     else
     {
       thinfat_sector_t si_read = thinfat_ctos(tf, blk->ci_current);
@@ -79,7 +83,7 @@ thinfat_result_t thinfat_blk_callback(thinfat_blk_t *blk, thinfat_core_event_t e
     break;
   case THINFAT_BLK_EVENT_WRITE_CLUSTER_LOOKUP:
     if (!THINFAT_IS_CLUSTER_VALID(blk->ci_current))
-      return THINFAT_RESULT_EOF;
+      return thinfat_core_callback(blk->client, blk->event, THINFAT_INVALID_SECTOR, NULL);
     else
     {
       thinfat_sector_t si_write = thinfat_ctos(tf, blk->ci_current);
@@ -93,9 +97,10 @@ thinfat_result_t thinfat_blk_callback(thinfat_blk_t *blk, thinfat_core_event_t e
   case THINFAT_BLK_EVENT_READ_CLUSTER:
     if (p_param == NULL)
     {
-      blk->state = THINFAT_BLK_STATE_IDLE;
       if (blk->sc_read > 0)
         return thinfat_blk_seek(blk, blk, ((blk->so_current >> tf->ctos_shift) + 1) << tf->ctos_shift, THINFAT_BLK_EVENT_READ_CLUSTER_LOOKUP);
+      else
+        return thinfat_core_callback(blk->client, blk->event, THINFAT_INVALID_SECTOR, NULL);
     }
     else if (*(void **)p_param == NULL)
     {
@@ -116,7 +121,6 @@ thinfat_result_t thinfat_blk_callback(thinfat_blk_t *blk, thinfat_core_event_t e
   case THINFAT_BLK_EVENT_WRITE_CLUSTER:
     if (p_param == NULL)
     {
-      blk->state = THINFAT_BLK_STATE_IDLE;
       if (blk->sc_write > 0)
         return thinfat_blk_seek(blk, blk, ((blk->so_current >> tf->ctos_shift) + 1) << tf->ctos_shift, THINFAT_BLK_EVENT_WRITE_CLUSTER_LOOKUP);
     }
@@ -212,7 +216,7 @@ thinfat_result_t thinfat_blk_seek(void *client, thinfat_blk_t *blk, thinfat_sect
       }
       blk->state = THINFAT_BLK_STATE_SEEK;
       blk->seek_event = event;
-      blk->client = client;
+      blk->seek_client = client;
       blk->so_seek = so_seek;
       return thinfat_blk_start_lookup(blk, THINFAT_BLK_EVENT_LOOKUP);
     }
@@ -220,7 +224,7 @@ thinfat_result_t thinfat_blk_seek(void *client, thinfat_blk_t *blk, thinfat_sect
   return THINFAT_RESULT_OK;
 }
 
-thinfat_result_t thinfat_blk_read_each_sector(void *client, thinfat_blk_t *blk, thinfat_sector_t sc_read, void *initial, thinfat_core_event_t event)
+thinfat_result_t thinfat_blk_read_each_sector(void *client, thinfat_blk_t *blk, thinfat_sector_t sc_read, thinfat_core_event_t event)
 {
   if (blk->state != THINFAT_BLK_STATE_IDLE)
     return THINFAT_RESULT_BLK_BUSY;
@@ -234,6 +238,7 @@ thinfat_result_t thinfat_blk_read_each_sector(void *client, thinfat_blk_t *blk, 
     blk->event = event;
     blk->sc_read = sc_read;
     blk->client = client;
+    blk->next_data = NULL;
     return thinfat_cached_read_single(blk, blk->cache, si_read, THINFAT_BLK_EVENT_READ_SINGLE);
   }
 }

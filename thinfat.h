@@ -9,6 +9,7 @@
 #define THINFAT_H
 
 #include "thinfat_common.h"
+#include "thinfat_config.h"
 
 #define THINFAT_TABLE_CACHE(tf) ((tf)->table_cache)
 #define THINFAT_DATA_CACHE(tf) ((tf)->data_cache)
@@ -53,6 +54,7 @@ typedef struct thinfat_tag
   thinfat_sector_t si_data;
   thinfat_sector_t si_hidden;
   thinfat_sector_t si_root;
+  thinfat_event_t event;
 }
 thinfat_t;
 
@@ -81,9 +83,9 @@ static inline uint32_t thinfat_read_u32(void *p, size_t offset)
 thinfat_result_t thinfat_initialize(thinfat_t *tf, struct thinfat_phy_tag *phy);
 thinfat_result_t thinfat_finalize(thinfat_t *tf);
 
-thinfat_result_t thinfat_find_partition(thinfat_t *tf);
-thinfat_result_t thinfat_mount(thinfat_t *tf, thinfat_sector_t sector);
-thinfat_result_t thinfat_unmount(thinfat_t *tf);
-thinfat_result_t thinfat_dump_current_dir(thinfat_t *tf);
+thinfat_result_t thinfat_find_partition(thinfat_t *tf, thinfat_event_t event);
+thinfat_result_t thinfat_mount(thinfat_t *tf, thinfat_sector_t sector, thinfat_event_t event);
+thinfat_result_t thinfat_unmount(thinfat_t *tf, thinfat_event_t event);
+thinfat_result_t thinfat_dump_current_directory(thinfat_t *tf, thinfat_event_t event);
 
 #endif

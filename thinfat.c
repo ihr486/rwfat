@@ -10,6 +10,15 @@
 #include "thinfat_blk.h"
 
 #include <stdlib.h>
+#include <string.h>
+
+#define THINFAT_ATTR_READ_ONLY (0x01)
+#define THINFAT_ATTR_HIDDEN (0x02)
+#define THINFAT_ATTR_SYSTEM (0x04)
+#define THINFAT_ATTR_VOLUME_ID (0x08)
+#define THINFAT_ATTR_DIRECTORY (0x10)
+#define THINFAT_ATTR_ARCHIVE (0x20)
+#define THINFAT_ATTR_LONG_FILE_NAME (0x0F)
 
 static thinfat_result_t thinfat_read_mbr_callback(thinfat_t *tf, void *mbr);
 static thinfat_result_t thinfat_read_parameter_block_callback(thinfat_t *tf, void *bpb);
@@ -33,6 +42,7 @@ static inline thinfat_sector_t thinfat_root_sector_count(thinfat_t *tf)
 
 thinfat_result_t thinfat_core_callback(void *instance, thinfat_core_event_t event, thinfat_sector_t s_param, void *p_param)
 {
+  THINFAT_INFO("Core callback: %p, %d, " TFF_X32 ", %p\n", instance, event, s_param, p_param);
   if (event < THINFAT_CORE_EVENT_MAX)
   {
     switch(event)
@@ -42,9 +52,9 @@ thinfat_result_t thinfat_core_callback(void *instance, thinfat_core_event_t even
     case THINFAT_CORE_EVENT_READ_BPB:
       return thinfat_read_parameter_block_callback((thinfat_t *)instance, *(void **)p_param);
     case THINFAT_CORE_EVENT_DUMP_DIR:
-      return thinfat_dump_dir_callback((thinfat_t *)instance, *(void **)p_param);
+      return thinfat_dump_dir_callback((thinfat_t *)instance, (void **)p_param);
     case THINFAT_CORE_EVENT_FIND_FILE:
-      return thinfat_find_file_callback((thinfat_t *)instance, *(void **)p_param);
+      return thinfat_find_file_callback((thinfat_t *)instance, (void **)p_param);
     }
   }
   else if (event < THINFAT_CACHE_EVENT_MAX)
@@ -181,7 +191,7 @@ static thinfat_result_t thinfat_read_mbr_callback(thinfat_t *tf, void *mbr)
 typedef struct
 {
   uint8_t attr;
-  char name[12];
+  uint8_t name[12];
   thinfat_cluster_t ci_head;
   uint32_t size;
 }
@@ -204,31 +214,41 @@ static thinfat_result_t thinfat_find_file_callback(thinfat_t *tf, void *entries)
 
 static thinfat_result_t thinfat_dump_dir_callback(thinfat_t *tf, void *entries)
 {
-  for (unsigned int i = 0; i < THINFAT_SECTOR_SIZE / 32; i++)
+  if (entries == NULL)
   {
-    thinfat_dir_entry_t entry;
-    thinfat_decode_dir_entry((uint8_t *)entries + i * 32, &entry);
-    if (entry.name[0] != 0x00 && entry.name[0] != 0xE5 && entry.name[0] != 0x05)
+    return thinfat_core_callback(tf, tf->event, THINFAT_INVALID_SECTOR, NULL);
+  }
+  else
+  {
+    for (unsigned int i = 0; i < THINFAT_SECTOR_SIZE / 32; i++)
     {
-      THINFAT_INFO("\"%s\" @ " TFF_X32 " * " TFF_U32 "\n", entry.name, entry.ci_head, entry.size);
+      thinfat_dir_entry_t entry;
+      thinfat_decode_dir_entry((uint8_t *)entries + i * 32, &entry);
+      if (entry.name[0] != 0x00 && entry.name[0] != 0xE5 && entry.name[0] != 0x05)
+      {
+        THINFAT_INFO("\"%s\" @ " TFF_X32 " * " TFF_U32 "\n", entry.name, entry.ci_head, entry.size);
+      }
     }
   }
   return THINFAT_RESULT_OK;
 }
 
-thinfat_result_t thinfat_find_partition(thinfat_t *tf)
+thinfat_result_t thinfat_find_partition(thinfat_t *tf, thinfat_event_t event)
 {
+  tf->event = event;
   return thinfat_cached_read_single(tf, tf->cache, 0, THINFAT_CORE_EVENT_READ_MBR);
 }
 
-thinfat_result_t thinfat_mount(thinfat_t *tf, thinfat_sector_t sector)
+thinfat_result_t thinfat_mount(thinfat_t *tf, thinfat_sector_t sector, thinfat_event_t event)
 {
+  tf->event = event;
   tf->si_hidden = sector;
   return thinfat_cached_read_single(tf, tf->cache, sector, THINFAT_CORE_EVENT_READ_BPB);
 }
 
-thinfat_result_t thinfat_unmount(thinfat_t *tf)
+thinfat_result_t thinfat_unmount(thinfat_t *tf, thinfat_event_t event)
 {
+  tf->event = event;
   return THINFAT_RESULT_OK;
 }
 
@@ -259,7 +279,8 @@ static thinfat_result_t thinfat_traverse_dir(thinfat_t *tf, thinfat_core_event_t
   return thinfat_blk_read_each_sector(tf, tf->cur_dir, sc_read, event);
 }
 
-thinfat_result_t thinfat_dump_current_directory(thinfat_t *tf)
+thinfat_result_t thinfat_dump_current_directory(thinfat_t *tf, thinfat_event_t event)
 {
+  tf->event = event;
   return thinfat_traverse_dir(tf, THINFAT_CORE_EVENT_DUMP_DIR);
 }

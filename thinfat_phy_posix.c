@@ -12,6 +12,7 @@
 #include <sys/mman.h>
 #include <sys/fcntl.h>
 #include <unistd.h>
+#include <time.h>
 
 static thinfat_sector_t sc_pagesize = 0;
 
@@ -202,5 +203,19 @@ thinfat_result_t thinfat_phy_write_multiple(void *client, thinfat_phy_t *phy, th
   phy->block = NULL;
   phy->event = event;
   THINFAT_INFO("Multiple WRITE request @ " TFF_X32 " * " TFF_U32 "\n", sector, count);
+  return THINFAT_RESULT_OK;
+}
+
+thinfat_result_t thinfat_phy_get_time(thinfat_phy_t *phy, thinfat_time_t *data)
+{
+  (void)phy;
+  time_t t = time(NULL);
+  struct tm *ts = localtime(&t);
+  data->year = ts->tm_year - 80;
+  data->month = ts->tm_mon + 1;
+  data->day = ts->tm_mday;
+  data->hour = ts->tm_hour;
+  data->minute = ts->tm_min;
+  data->second2 = ts->tm_sec;
   return THINFAT_RESULT_OK;
 }
