@@ -55,29 +55,55 @@ typedef struct thinfat_tag
   thinfat_sector_t si_hidden;
   thinfat_sector_t si_root;
   thinfat_event_t event;
+  union
+  {
+    struct
+    {
+      const void *target_name;
+      int nc_matched;
+      uint8_t checksum;
+    };
+  };
 }
 thinfat_t;
+
+typedef struct thinfat_dir_entry_tag
+{
+  uint8_t attr;
+  uint8_t name[12];
+  thinfat_cluster_t ci_head;
+  uint32_t size;
+}
+thinfat_dir_entry_t;
+
+typedef struct thinfat_lfn_entry_tag
+{
+  uint8_t order;
+  uint8_t checksum;
+  wchar_t partial_name[14];
+}
+thinfat_lfn_entry_t;
 
 thinfat_result_t thinfat_user_callback(thinfat_t *tf, thinfat_event_t event, thinfat_sector_t s_param, void *p_param);
 
 static inline uint8_t thinfat_read_u8(void *p, size_t offset)
 {
-    return ((uint8_t *)p)[offset];
+  return ((uint8_t *)p)[offset];
 }
 
 static inline uint16_t thinfat_read_u16(void *p, size_t offset)
 {
-    return ((uint8_t *)p)[offset] | ((uint16_t)((uint8_t *)p)[offset + 1] << 8);
+  return ((uint8_t *)p)[offset] | ((uint16_t)((uint8_t *)p)[offset + 1] << 8);
 }
 
 static inline uint32_t thinfat_read_u24(void *p, size_t offset)
 {
-    return ((uint8_t *)p)[offset] | ((uint32_t)((uint8_t *)p)[offset + 1] << 8) | ((uint32_t)((uint8_t *)p)[offset + 2] << 16);
+  return ((uint8_t *)p)[offset] | ((uint32_t)((uint8_t *)p)[offset + 1] << 8) | ((uint32_t)((uint8_t *)p)[offset + 2] << 16);
 }
 
 static inline uint32_t thinfat_read_u32(void *p, size_t offset)
 {
-    return ((uint8_t *)p)[offset] | ((uint32_t)((uint8_t *)p)[offset + 1] << 8) | ((uint32_t)((uint8_t *)p)[offset + 2] << 16) | ((uint32_t)((uint8_t *)p)[offset + 3] << 24);
+  return ((uint8_t *)p)[offset] | ((uint32_t)((uint8_t *)p)[offset + 1] << 8) | ((uint32_t)((uint8_t *)p)[offset + 2] << 16) | ((uint32_t)((uint8_t *)p)[offset + 3] << 24);
 }
 
 thinfat_result_t thinfat_initialize(thinfat_t *tf, struct thinfat_phy_tag *phy);
@@ -87,5 +113,7 @@ thinfat_result_t thinfat_find_partition(thinfat_t *tf, thinfat_event_t event);
 thinfat_result_t thinfat_mount(thinfat_t *tf, thinfat_sector_t sector, thinfat_event_t event);
 thinfat_result_t thinfat_unmount(thinfat_t *tf, thinfat_event_t event);
 thinfat_result_t thinfat_dump_current_directory(thinfat_t *tf, thinfat_event_t event);
+thinfat_result_t thinfat_find_file(thinfat_t *tf, const char *name, thinfat_event_t event);
+thinfat_result_t thinfat_find_file_by_longname(thinfat_t *tf, const wchar_t *longname, thinfat_event_t event);
 
 #endif

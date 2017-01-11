@@ -23,10 +23,12 @@ thinfat_result_t thinfat_user_callback(thinfat_t *tf, thinfat_event_t event, thi
     break;
   case THINFAT_EVENT_MOUNT:
     printf("Partition at 0x%08X mounted.\n", s_param);
-    thinfat_dump_current_directory(tf, THINFAT_USER_EVENT + 1);
+    //thinfat_dump_current_directory(tf, THINFAT_USER_EVENT + 1);
+    thinfat_find_file_by_longname(tf, L"U3D_A_061228_5", THINFAT_USER_EVENT + 1);
     break;
   case THINFAT_USER_EVENT + 1:
     printf("User event #1 detected.\n");
+    printf("Cluster = " TFF_X32 "\n", ((thinfat_dir_entry_t *)p_param)->ci_head);
     break;
   case THINFAT_EVENT_UNMOUNT:
     break;

@@ -63,6 +63,7 @@ thinfat_result_t thinfat_blk_callback(thinfat_blk_t *blk, thinfat_core_event_t e
     }
     else
     {
+      printf("Aborting.\n");
       return res == THINFAT_RESULT_ABORT ? THINFAT_RESULT_OK : res;
     }
     break;
