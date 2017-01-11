@@ -418,3 +418,13 @@ thinfat_result_t thinfat_find_file_by_longname(thinfat_t *tf, const wchar_t *lon
   tf->nc_matched = 0;
   return thinfat_traverse_dir(tf, THINFAT_CORE_EVENT_FIND_FILE_BY_LONGNAME);
 }
+
+thinfat_result_t thinfat_chdir(thinfat_t *tf, thinfat_cluster_t ci)
+{
+  return thinfat_blk_open(tf->cur_dir, ci);
+}
+
+thinfat_result_t thinfat_open_file(thinfat_t *tf, thinfat_cluster_t ci)
+{
+  return thinfat_blk_open(tf->cur_file, ci);
+}
