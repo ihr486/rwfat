@@ -40,6 +40,7 @@ typedef struct thinfat_phy_tag
   thinfat_sector_t s_param_cb;
   void *p_param_cb;
   bool cb_flag;
+  void *arg;
 }
 thinfat_phy_t;
 

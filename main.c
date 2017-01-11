@@ -66,6 +66,11 @@ int main(int argc, const char *argv[])
 
   tfwrap_dump_current_directory(&tf);
 
+  thinfat_dir_entry_t entry;
+  printf("result = %d\n", tfwrap_find_file_by_longname(&tf, L"U3D_A_061228_5", &entry));
+
+  printf("Filename = %s\n", entry.name);
+
   thinfat_phy_stop(&phy);
 
   thinfat_finalize(&tf);

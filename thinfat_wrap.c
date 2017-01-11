@@ -7,6 +7,8 @@
 #include "thinfat_wrap.h"
 #include "thinfat_phy.h"
 
+#include <string.h>
+
 thinfat_result_t thinfat_user_callback(thinfat_t *tf, thinfat_event_t event, thinfat_sector_t s_param, void *p_param)
 {
   switch(event)
@@ -15,10 +17,17 @@ thinfat_result_t thinfat_user_callback(thinfat_t *tf, thinfat_event_t event, thi
     printf("User event #1 detected.\n");
     tf->phy->s_param_cb = s_param;
     tf->phy->p_param_cb = p_param;
-    tf->phy->cb_flag = true;
-    thinfat_phy_signal(tf->phy);
+    break;
+  case THINFAT_EVENT_FIND_FILE:
+    printf("Find file event detected.\n");
+    if (p_param != NULL)
+      memcpy(tf->phy->arg, p_param, sizeof(thinfat_dir_entry_t));
+    else
+      ((thinfat_dir_entry_t *)tf->phy->arg)->name[0] = 0x00;
     break;
   }
+  tf->phy->cb_flag = true;
+  thinfat_phy_signal(tf->phy);
   return THINFAT_RESULT_OK;
 }
 
@@ -44,4 +53,18 @@ thinfat_result_t tfwrap_dump_current_directory(thinfat_t *tf)
 {
   thinfat_phy_enter(tf->phy);
   return thinfat_phy_leave(tf->phy, thinfat_dump_current_directory(tf, THINFAT_USER_EVENT));
+}
+
+thinfat_result_t tfwrap_find_file(thinfat_t *tf, const char *name, thinfat_dir_entry_t *entry)
+{
+  thinfat_phy_enter(tf->phy);
+  tf->phy->arg = entry;
+  return thinfat_phy_leave(tf->phy, thinfat_find_file(tf, name, THINFAT_EVENT_FIND_FILE));
+}
+
+thinfat_result_t tfwrap_find_file_by_longname(thinfat_t *tf, const wchar_t *longname, thinfat_dir_entry_t *entry)
+{
+  thinfat_phy_enter(tf->phy);
+  tf->phy->arg = entry;
+  return thinfat_phy_leave(tf->phy, thinfat_find_file_by_longname(tf, longname, THINFAT_EVENT_FIND_FILE));
 }
