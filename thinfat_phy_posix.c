@@ -30,7 +30,7 @@ static void *thinfat_phy_execute(void *arg)
   while(!phy->exit_flag)
   {
     pthread_mutex_lock(&phy->lock);
-    thinfat_phy_schedule(&phy);
+    thinfat_phy_schedule(phy);
     pthread_mutex_unlock(&phy->lock);
     sleep(0);
   }
@@ -46,13 +46,14 @@ thinfat_result_t thinfat_phy_initialize(thinfat_phy_t *phy, const char *devpath)
   phy->mapped_block = NULL;
   sc_pagesize = sysconf(_SC_PAGESIZE) / THINFAT_SECTOR_SIZE;
   pthread_mutex_init(&phy->lock, NULL);
+  pthread_cond_init(&phy->cond, NULL);
   return phy->fd < 0 ? THINFAT_RESULT_PHY_ERROR : THINFAT_RESULT_OK;
 }
 
 thinfat_result_t thinfat_phy_start(thinfat_phy_t *phy)
 {
   phy->exit_flag = false;
-  pthread_create(phy->thread, NULL, thinfat_phy_execute, phy);
+  pthread_create(&phy->thread, NULL, thinfat_phy_execute, phy);
   return THINFAT_RESULT_OK;
 }
 
@@ -63,6 +64,16 @@ thinfat_result_t thinfat_phy_stop(thinfat_phy_t *phy)
   pthread_mutex_unlock(&phy->lock);
   pthread_join(phy->thread, NULL);
   return THINFAT_RESULT_OK;
+}
+
+void thinfat_phy_wait(thinfat_phy_t *phy)
+{
+  pthread_cond_wait(&phy->cond, &phy->lock);
+}
+
+void thinfat_phy_signal(thinfat_phy_t *phy)
+{
+  pthread_cond_signal(&phy->cond);
 }
 
 bool thinfat_phy_is_idle(thinfat_phy_t *phy)
@@ -88,6 +99,9 @@ static thinfat_result_t thinfat_phy_remap(thinfat_phy_t *phy)
 thinfat_result_t thinfat_phy_schedule(thinfat_phy_t *phy)
 {
   thinfat_result_t res;
+
+  if (!thinfat_phy_is_idle(phy))
+    THINFAT_INFO("PHY scheduler called: state = %d.\n", (int)phy->state);
 
   switch(phy->state)
   {

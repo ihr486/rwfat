@@ -58,7 +58,7 @@ static inline thinfat_sector_t thinfat_root_sector_count(thinfat_t *tf)
 
 thinfat_result_t thinfat_core_callback(void *instance, thinfat_core_event_t event, thinfat_sector_t s_param, void *p_param)
 {
-  //THINFAT_INFO("Core callback: %p, %d, " TFF_X32 ", %p\n", instance, event, s_param, p_param);
+  THINFAT_INFO("Core callback: %p, %d, " TFF_X32 ", %p\n", instance, event, s_param, p_param);
   if (event < THINFAT_CORE_EVENT_MAX)
   {
     switch(event)
@@ -172,7 +172,7 @@ static thinfat_result_t thinfat_read_parameter_block_callback(thinfat_t *tf, voi
 
   thinfat_blk_open(tf->cur_dir, tf->ci_root);
 
-  return thinfat_user_callback(tf, THINFAT_EVENT_MOUNT, tf->si_hidden, NULL);
+  return thinfat_core_callback(tf, tf->event, tf->si_hidden, NULL);
 }
 
 static thinfat_result_t thinfat_read_mbr_callback(thinfat_t *tf, void *mbr)
@@ -194,12 +194,12 @@ static thinfat_result_t thinfat_read_mbr_callback(thinfat_t *tf, void *mbr)
     case 0x0B:
     case 0x0C:
       THINFAT_INFO("Partition %u@" TFF_X32 ": FAT32(LBA)\n", i, partition_offset);
-      return thinfat_user_callback(tf, THINFAT_EVENT_FIND_PARTITION, partition_offset, NULL);
+      return thinfat_core_callback(tf, tf->event, partition_offset, NULL);
     case 0x04:
     case 0x06:
     case 0x0E:
       THINFAT_INFO("Partition %u@" TFF_X32 ": FAT16(LBA)\n", i, partition_offset);
-      return thinfat_user_callback(tf, THINFAT_EVENT_FIND_PARTITION, partition_offset, NULL);
+      return thinfat_core_callback(tf, tf->event, partition_offset, NULL);
     }
   }
   THINFAT_ERROR("No partition found on the disk.\n");

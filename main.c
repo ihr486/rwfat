@@ -12,8 +12,9 @@
 #include "thinfat_phy.h"
 #include "thinfat_blk.h"
 #include "thinfat_cache.h"
+#include "thinfat_wrap.h"
 
-thinfat_result_t thinfat_user_callback(thinfat_t *tf, thinfat_event_t event, thinfat_sector_t s_param, void *p_param)
+/*thinfat_result_t thinfat_user_callback(thinfat_t *tf, thinfat_event_t event, thinfat_sector_t s_param, void *p_param)
 {
   switch(event)
   {
@@ -34,7 +35,7 @@ thinfat_result_t thinfat_user_callback(thinfat_t *tf, thinfat_event_t event, thi
     break;
   }
   return THINFAT_RESULT_OK;
-}
+}*/
 
 int main(int argc, const char *argv[])
 {
@@ -60,14 +61,18 @@ int main(int argc, const char *argv[])
     return EXIT_FAILURE;
   }
 
-  //thinfat_find_partition(&tf);
-  thinfat_mount(&tf, 0, THINFAT_EVENT_MOUNT);
+  thinfat_phy_start(&phy);
 
-  while(!thinfat_phy_is_idle(&phy))
+  //thinfat_find_partition(&tf);
+  tfwrap_mount(&tf, 0);
+
+  /*while(!thinfat_phy_is_idle(&phy))
   {
     if (thinfat_phy_schedule(&phy) != THINFAT_RESULT_OK)
       break;
-  }
+  }*/
+
+  thinfat_phy_stop(&phy);
 
   thinfat_finalize(&tf);
 
