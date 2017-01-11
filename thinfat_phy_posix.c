@@ -14,6 +14,29 @@
 #include <unistd.h>
 #include <time.h>
 
+void thinfat_phy_lock(thinfat_phy_t *phy)
+{
+  pthread_mutex_lock(&phy->lock);
+}
+
+void thinfat_phy_unlock(thinfat_phy_t *phy)
+{
+  pthread_mutex_unlock(&phy->lock);
+}
+
+static void *thinfat_phy_execute(void *arg)
+{
+  thinfat_phy_t *phy = (thinfat_phy_t *)arg;
+  while(!phy->exit_flag)
+  {
+    pthread_mutex_lock(&phy->lock);
+    thinfat_phy_schedule(&phy);
+    pthread_mutex_unlock(&phy->lock);
+    sleep(0);
+  }
+  return NULL;
+}
+
 static thinfat_sector_t sc_pagesize = 0;
 
 thinfat_result_t thinfat_phy_initialize(thinfat_phy_t *phy, const char *devpath)
@@ -22,7 +45,24 @@ thinfat_result_t thinfat_phy_initialize(thinfat_phy_t *phy, const char *devpath)
   phy->fd = open(devpath, O_RDWR);
   phy->mapped_block = NULL;
   sc_pagesize = sysconf(_SC_PAGESIZE) / THINFAT_SECTOR_SIZE;
+  pthread_mutex_init(&phy->lock, NULL);
   return phy->fd < 0 ? THINFAT_RESULT_PHY_ERROR : THINFAT_RESULT_OK;
+}
+
+thinfat_result_t thinfat_phy_start(thinfat_phy_t *phy)
+{
+  phy->exit_flag = false;
+  pthread_create(phy->thread, NULL, thinfat_phy_execute, phy);
+  return THINFAT_RESULT_OK;
+}
+
+thinfat_result_t thinfat_phy_stop(thinfat_phy_t *phy)
+{
+  pthread_mutex_lock(&phy->lock);
+  phy->exit_flag = true;
+  pthread_mutex_unlock(&phy->lock);
+  pthread_join(phy->thread, NULL);
+  return THINFAT_RESULT_OK;
 }
 
 bool thinfat_phy_is_idle(thinfat_phy_t *phy)

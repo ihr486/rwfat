@@ -15,7 +15,7 @@
 #ifndef THINFAT_WRAP_FATFS
 #define THINFAT_WRAP_FATFS
 
-#define _FATFS 78020
+#define _FATFS 78020	//Version differs from the original so they do not mix
 
 #ifdef __cplusplus
 extern "C" {
