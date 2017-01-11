@@ -1,6 +1,6 @@
 /*!
  * @file thinfat_blk.c
- * @brief BLK layer implementation for RivieraWaves FAT driver
+ * @brief thinFAT BLK layer implementation
  * @date 2017/01/08
  * @author Hiroka IHARA
  */

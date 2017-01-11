@@ -1,6 +1,6 @@
 /*!
  * @file thinfat.c
- * @brief Main source file of RivieraWaves FAT driver
+ * @brief thinFAT core implementation
  * @date 2017/01/07
  * @author Hiroka IHARA
  */
@@ -58,7 +58,7 @@ static inline thinfat_sector_t thinfat_root_sector_count(thinfat_t *tf)
 
 thinfat_result_t thinfat_core_callback(void *instance, thinfat_core_event_t event, thinfat_sector_t s_param, void *p_param)
 {
-  THINFAT_INFO("Core callback: %p, %d, " TFF_X32 ", %p\n", instance, event, s_param, p_param);
+  //THINFAT_INFO("Core callback: %p, %d, " TFF_X32 ", %p\n", instance, event, s_param, p_param);
   if (event < THINFAT_CORE_EVENT_MAX)
   {
     switch(event)

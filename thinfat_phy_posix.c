@@ -1,6 +1,6 @@
 /*!
  * @file thinfat_phy_posix.c
- * @brief POSIX PHY layer for RivieraWaves FAT driver <br>
+ * @brief POSIX PHY layer designed for thinFAT <br>
  *        This is meant to be an example PHY implementation.
  * @date 2017/01/07
  * @author Hiroka IHARA
@@ -35,6 +35,21 @@ static void *thinfat_phy_execute(void *arg)
     sleep(0);
   }
   return NULL;
+}
+
+void thinfat_phy_enter(thinfat_phy_t *phy)
+{
+  pthread_mutex_lock(&phy->lock);
+  phy->cb_flag = false;
+}
+
+thinfat_result_t thinfat_phy_leave(thinfat_phy_t *phy, thinfat_result_t res)
+{
+  if (res != THINFAT_RESULT_OK) return res;
+  while (!phy->cb_flag)
+    pthread_cond_wait(&phy->cond, &phy->lock);
+  pthread_mutex_unlock(&phy->lock);
+  return THINFAT_RESULT_OK;
 }
 
 static thinfat_sector_t sc_pagesize = 0;
@@ -100,8 +115,8 @@ thinfat_result_t thinfat_phy_schedule(thinfat_phy_t *phy)
 {
   thinfat_result_t res;
 
-  if (!thinfat_phy_is_idle(phy))
-    THINFAT_INFO("PHY scheduler called: state = %d.\n", (int)phy->state);
+  /*if (!thinfat_phy_is_idle(phy))
+    THINFAT_INFO("PHY scheduler called: state = %d.\n", (int)phy->state);*/
 
   switch(phy->state)
   {

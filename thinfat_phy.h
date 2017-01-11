@@ -1,6 +1,6 @@
 /*!
  * @file thinfat_phy.h
- * @brief Common PHY layer interface for RivieraWaves FAT driver
+ * @brief thinFAT common PHY layer interface
  * @date 2017/01/07
  * @author Hiroka IHARA
  */
@@ -86,5 +86,7 @@ void thinfat_phy_lock(thinfat_phy_t *phy);
 void thinfat_phy_unlock(thinfat_phy_t *phy);
 void thinfat_phy_wait(thinfat_phy_t *phy);
 void thinfat_phy_signal(thinfat_phy_t *phy);
+void thinfat_phy_enter(thinfat_phy_t *phy);
+thinfat_result_t thinfat_phy_leave(thinfat_phy_t *phy, thinfat_result_t res);
 
 #endif

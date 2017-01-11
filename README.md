@@ -1,3 +1,3 @@
-RWFAT
+thinFAT
 ========
-FAT16/FAT32 filesystem driver for RivieraWaves Kernel Extension (RWKE)
+thinFAT is an asynchronous FAT16/32 driver for embedded platforms without RTOS.

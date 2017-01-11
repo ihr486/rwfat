@@ -1,6 +1,6 @@
 /*!
  * @file thinfat_wrap_fatfs.h
- * @brief FatFs compatibility interface for RivieraWaves FAT driver
+ * @brief thinFAT compatibility interface
  * @date 2017/01/11
  * @author Hiroka IHARA
  */

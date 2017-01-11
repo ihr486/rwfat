@@ -1,13 +1,12 @@
 /*!
  * @file main.c
- * @brief Test program for RivieraWaves FAT driver running on POSIX
+ * @brief thinFAT test program running on POSIX environment
  * @date 2017/01/07
  * @author Hiroka IHARA
  */
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <pthread.h>
 #include "thinfat.h"
 #include "thinfat_phy.h"
 #include "thinfat_blk.h"
@@ -39,7 +38,7 @@
 
 int main(int argc, const char *argv[])
 {
-  printf("RivieraWaves FAT16/FAT32 driver testbed v0.1a\n");
+  printf("thinFAT testbed v0.1a\n");
 
   if (argc < 2)
   {
@@ -63,14 +62,9 @@ int main(int argc, const char *argv[])
 
   thinfat_phy_start(&phy);
 
-  //thinfat_find_partition(&tf);
   tfwrap_mount(&tf, 0);
 
-  /*while(!thinfat_phy_is_idle(&phy))
-  {
-    if (thinfat_phy_schedule(&phy) != THINFAT_RESULT_OK)
-      break;
-  }*/
+  tfwrap_dump_current_directory(&tf);
 
   thinfat_phy_stop(&phy);
 

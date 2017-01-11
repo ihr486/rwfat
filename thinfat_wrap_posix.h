@@ -1,6 +1,6 @@
 /*!
  * @file thinfat_wrap_posix.h
- * @brief POSIX compatibility layer interface for RivieraWaves FAT driver
+ * @brief thinFAT compatibility interface
  * @date 2017/01/11
  * @author Hiroka IHARA
  */

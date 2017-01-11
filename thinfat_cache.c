@@ -1,6 +1,6 @@
 /*!
  * @file thinfat_cache.c
- * @brief Cache layer implementation of RivieraWaves FAT driver
+ * @brief thinFAT Cache layer implementation
  * @date 2017/01/09
  * @author Hiroka IHARA
  */

@@ -1,6 +1,6 @@
 /*!
  * @file thinfat.h
- * @brief Public interface for RivieraWaves FAT driver
+ * @brief thinFAT base public interface
  * @date 2017/01/08
  * @author Hiroka IHARA
  */

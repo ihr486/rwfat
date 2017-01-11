@@ -1,3 +1,9 @@
+/*!
+ * @file thinfat_config.h
+ * @brief thinFAT configuration listing
+ * @date 2017/01/12
+ * @author Hiroka IHARA
+ */
 #ifndef THINFAT_CONFIG_H
 #define THINFAT_CONFIG_H
 

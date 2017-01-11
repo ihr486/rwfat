@@ -1,3 +1,9 @@
+/*!
+ * @file thinfat_wrap.h
+ * @brief thinFAT synchronous wrapper interface
+ * @date 2017/01/12
+ * @author Hiroka IHARA
+ */
 #ifndef THINFAT_WRAP_H
 #define THINFAT_WRAP_H
 
@@ -8,5 +14,6 @@ typedef thinfat_result_t tfwrap_result_t;
 tfwrap_result_t tfwrap_find_partition(thinfat_t *tf);
 tfwrap_result_t tfwrap_mount(thinfat_t *tf, thinfat_sector_t si);
 tfwrap_result_t tfwrap_unmount(thinfat_t *tf);
+tfwrap_result_t tfwrap_dump_current_directory(thinfat_t *tf);
 
 #endif
