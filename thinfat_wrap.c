@@ -25,6 +25,10 @@ thinfat_result_t thinfat_user_callback(thinfat_t *tf, thinfat_event_t event, thi
     else
       ((thinfat_dir_entry_t *)tf->phy->arg)->name[0] = 0x00;
     break;
+  case THINFAT_EVENT_READ_FILE:
+    break;
+  case THINFAT_EVENT_WRITE_FILE:
+    break;
   }
   tf->phy->cb_flag = true;
   thinfat_phy_signal(tf->phy);
@@ -67,4 +71,18 @@ thinfat_result_t tfwrap_find_file_by_longname(thinfat_t *tf, const wchar_t *long
   thinfat_phy_enter(tf->phy);
   tf->phy->arg = entry;
   return thinfat_phy_leave(tf->phy, thinfat_find_file_by_longname(tf, longname, THINFAT_EVENT_FIND_FILE));
+}
+
+thinfat_result_t tfwrap_read_file(thinfat_t *tf, void *buf, size_t size)
+{
+  thinfat_phy_enter(tf->phy);
+  tf->phy->arg = buf;
+  return thinfat_phy_leave(tf->phy, thinfat_read_file(tf, buf, size, THINFAT_EVENT_READ_FILE));
+}
+
+thinfat_result_t tfwrap_write_file(thinfat_t *tf, const void *buf, size_t size)
+{
+  thinfat_phy_enter(tf->phy);
+  tf->phy->arg = buf;
+  return thinfat_phy_leave(tf->phy, thinfat_write_file(tf, buf, size, THINFAT_EVENT_WRITE_FILE));
 }

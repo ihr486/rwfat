@@ -162,6 +162,7 @@ thinfat_result_t thinfat_blk_open(thinfat_blk_t *blk, thinfat_cluster_t ci)
   blk->ci_head = ci;
   blk->ci_current = ci;
   blk->so_current = 0;
+  blk->byte_pointer = 0;
   return THINFAT_RESULT_OK;
 }
 

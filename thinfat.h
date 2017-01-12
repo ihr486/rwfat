@@ -117,5 +117,7 @@ thinfat_result_t thinfat_find_file(thinfat_t *tf, const char *name, thinfat_even
 thinfat_result_t thinfat_find_file_by_longname(thinfat_t *tf, const wchar_t *longname, thinfat_event_t event);
 thinfat_result_t thinfat_chdir(thinfat_t *tf, thinfat_cluster_t ci);
 thinfat_result_t thinfat_open_file(thinfat_t *tf, thinfat_cluster_t ci);
+thinfat_result_t thinfat_read_file(thinfat_t *tf, void *buf, size_t size, thinfat_event_t event);
+thinfat_result_t thinfat_write_file(thinfat_t *tf, const void *buf, size_t size, thinfat_event_t event);
 
 #endif

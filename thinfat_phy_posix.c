@@ -128,7 +128,7 @@ thinfat_result_t thinfat_phy_schedule(thinfat_phy_t *phy)
       void *src = (uint8_t *)phy->mapped_block + THINFAT_SECTOR_SIZE * (phy->si_req % sc_pagesize);
       memcpy(phy->block, src, THINFAT_SECTOR_SIZE);
       phy->state = THINFAT_PHY_STATE_IDLE;
-      return thinfat_core_callback(phy->client, phy->event, 0, &phy->block);
+      return thinfat_core_callback(phy->client, phy->event, phy->si_req, &phy->block);
     }
     else
     {
@@ -141,7 +141,7 @@ thinfat_result_t thinfat_phy_schedule(thinfat_phy_t *phy)
       void *dest = (uint8_t *)phy->mapped_block + THINFAT_SECTOR_SIZE * (phy->si_req % sc_pagesize);
       memcpy(dest, phy->block, THINFAT_SECTOR_SIZE);
       phy->state = THINFAT_PHY_STATE_IDLE;
-      return thinfat_core_callback(phy->client, phy->event, 0, &phy->block);
+      return thinfat_core_callback(phy->client, phy->event, phy->si_req, &phy->block);
     }
     else
     {
@@ -153,7 +153,7 @@ thinfat_result_t thinfat_phy_schedule(thinfat_phy_t *phy)
     {
       if ((res = thinfat_phy_remap(phy)) == THINFAT_RESULT_OK)
       {
-        return thinfat_core_callback(phy->client, phy->event, 0, &phy->block);
+        return thinfat_core_callback(phy->client, phy->event, phy->si_req, &phy->block);
       }
       else
       {
@@ -164,12 +164,12 @@ thinfat_result_t thinfat_phy_schedule(thinfat_phy_t *phy)
     {
       void *src = (uint8_t *)phy->mapped_block + THINFAT_SECTOR_SIZE * ((phy->si_req % sc_pagesize) + phy->sc_current);
       memcpy(phy->block, src, THINFAT_SECTOR_SIZE);
-      return thinfat_core_callback(phy->client, phy->event, phy->sc_current++, &phy->block);
+      return thinfat_core_callback(phy->client, phy->event, phy->si_req + phy->sc_current++, &phy->block);
     }
     else
     {
       phy->state = THINFAT_PHY_STATE_IDLE;
-      return thinfat_core_callback(phy->client, phy->event, phy->sc_current, NULL);
+      return thinfat_core_callback(phy->client, phy->event, phy->si_req + phy->sc_current, NULL);
     }
     break;
   case THINFAT_PHY_STATE_MULTIPLE_WRITE:
@@ -177,7 +177,7 @@ thinfat_result_t thinfat_phy_schedule(thinfat_phy_t *phy)
     {
       if ((res = thinfat_phy_remap(phy)) == THINFAT_RESULT_OK)
       {
-        return thinfat_core_callback(phy->client, phy->event, 0, &phy->block);
+        return thinfat_core_callback(phy->client, phy->event, phy->si_req, &phy->block);
       }
       else
       {
@@ -188,12 +188,12 @@ thinfat_result_t thinfat_phy_schedule(thinfat_phy_t *phy)
     {
       void *dest = (uint8_t *)phy->mapped_block + THINFAT_SECTOR_SIZE * ((phy->si_req % sc_pagesize) + phy->sc_current);
       memcpy(dest, phy->block, THINFAT_SECTOR_SIZE);
-      return thinfat_core_callback(phy->client, phy->event, phy->sc_current++, &phy->block);
+      return thinfat_core_callback(phy->client, phy->event, phy->si_req + phy->sc_current++, &phy->block);
     }
     else
     {
       phy->state = THINFAT_PHY_STATE_IDLE;
-      return thinfat_core_callback(phy->client, phy->event, phy->sc_current, NULL);
+      return thinfat_core_callback(phy->client, phy->event, phy->si_req + phy->sc_current, NULL);
     }
     break;
   }

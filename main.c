@@ -66,6 +66,15 @@ int main(int argc, const char *argv[])
 
   tfwrap_dump_current_directory(&tf);
 
+  thinfat_dir_entry_t entry;
+  tfwrap_find_file_by_longname(&tf, L"big.txt", &entry);
+
+  thinfat_open_file(&tf, entry.ci_head);
+
+#define READ_SIZE (10000000)
+  char *read_buf = (char *)malloc(READ_SIZE);
+  tfwrap_read_file(&tf, read_buf, READ_SIZE);
+
   thinfat_phy_stop(&phy);
 
   thinfat_finalize(&tf);

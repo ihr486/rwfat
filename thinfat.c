@@ -360,10 +360,25 @@ static thinfat_result_t thinfat_dump_dir_callback(thinfat_t *tf, void *entries)
 
 static thinfat_result_t thinfat_read_file_callback(thinfat_t *tf, thinfat_sector_t s_param, void *p_param)
 {
+  if (p_param == NULL)
+  {
+    return thinfat_core_callback(tf, tf->event, s_param, p_param);
+  }
+  else if (*(void **)p_param == NULL)
+  {
+    *(void **)p_param = tf->cur_file->cache->data;
+  }
+  else
+  {
+  }
+  THINFAT_INFO("Read callback @ " TFF_X32 " = %p\n", s_param, *(void **)p_param);
+  return THINFAT_RESULT_OK;
 }
 
 static thinfat_result_t thinfat_write_file_callback(thinfat_t *tf, thinfat_sector_t s_param, void *p_param)
 {
+  THINFAT_INFO("Write callback @ " TFF_X32 " = %p\n", s_param, *(void **)p_param);
+  return THINFAT_RESULT_OK;
 }
 
 thinfat_result_t thinfat_find_partition(thinfat_t *tf, thinfat_event_t event)
@@ -450,12 +465,14 @@ thinfat_result_t thinfat_open_file(thinfat_t *tf, thinfat_cluster_t ci)
 
 thinfat_result_t thinfat_read_file(thinfat_t *tf, void *buf, size_t size, thinfat_event_t event)
 {
+  thinfat_sector_t sc_read = ((tf->cur_file->byte_pointer % THINFAT_SECTOR_SIZE) + size + THINFAT_SECTOR_SIZE - 1) / THINFAT_SECTOR_SIZE;
   tf->event = event;
-  return thinfat_blk_read_each_cluster(tf, tf->cur_file, size, THINFAT_CORE_EVENT_READ_FILE);
+  return thinfat_blk_read_each_cluster(tf, tf->cur_file, sc_read, THINFAT_CORE_EVENT_READ_FILE);
 }
 
-thinfat_result_t thinfat_write_file(thinfat_t *tf, void *buf, size_t size, thinfat_event_t event)
+thinfat_result_t thinfat_write_file(thinfat_t *tf, const void *buf, size_t size, thinfat_event_t event)
 {
+  thinfat_sector_t sc_write = ((tf->cur_file->byte_pointer % THINFAT_SECTOR_SIZE) + size + THINFAT_SECTOR_SIZE - 1) / THINFAT_SECTOR_SIZE;
   tf->event = event;
-  return thinfat_blk_write_each_cluster(tf, tf->cur_file, size, THINFAT_CORE_EVENT_WRITE_FILE);
+  return thinfat_blk_write_each_cluster(tf, tf->cur_file, sc_write, THINFAT_CORE_EVENT_WRITE_FILE);
 }

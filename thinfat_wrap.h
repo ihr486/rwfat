@@ -17,5 +17,7 @@ tfwrap_result_t tfwrap_unmount(thinfat_t *tf);
 tfwrap_result_t tfwrap_dump_current_directory(thinfat_t *tf);
 tfwrap_result_t tfwrap_find_file(thinfat_t *tf, const char *name, thinfat_dir_entry_t *entry);
 tfwrap_result_t tfwrap_find_file_by_longname(thinfat_t *tf, const wchar_t *longname, thinfat_dir_entry_t *entry);
+tfwrap_result_t tfwrap_read_file(thinfat_t *tf, void *buf, size_t size);
+tfwrap_result_t tfwrap_write_file(thinfat_t *tf, const void *buf, size_t size);
 
 #endif

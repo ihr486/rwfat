@@ -29,6 +29,7 @@ typedef struct thinfat_blk_tag
   thinfat_cluster_t ci_head;
   thinfat_cluster_t ci_current;
   thinfat_sector_t so_current;
+  size_t byte_pointer;
   thinfat_core_event_t event, seek_event;
   struct thinfat_cache_tag *cache;
   void *next_data;
