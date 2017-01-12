@@ -408,7 +408,11 @@ thinfat_result_t thinfat_finalize(thinfat_t *tf)
 
 static thinfat_result_t thinfat_traverse_dir(thinfat_t *tf, thinfat_core_event_t event)
 {
-  thinfat_sector_t sc_read = thinfat_root_sector_count(tf);
+  thinfat_sector_t sc_read;
+  if (tf->cur_dir->ci_head == tf->ci_root)
+    sc_read = thinfat_root_sector_count(tf);
+  else
+    sc_read = 0xFFFFFFFF;
   thinfat_blk_rewind(tf->cur_dir);
   return thinfat_blk_read_each_sector(tf, tf->cur_dir, sc_read, event);
 }

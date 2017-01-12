@@ -234,7 +234,11 @@ thinfat_result_t thinfat_blk_read_each_sector(void *client, thinfat_blk_t *blk, 
   else
   {
     thinfat_t *tf = (thinfat_t *)blk->parent;
-    thinfat_sector_t si_read = thinfat_ctos(tf, blk->ci_current) + (blk->so_current & ((1 << tf->ctos_shift) - 1));
+    thinfat_sector_t si_read;
+    if (blk->ci_current >= 2)
+      si_read = thinfat_ctos(tf, blk->ci_current) + (blk->so_current & ((1 << tf->ctos_shift) - 1));
+    else
+      si_read = tf->si_root + blk->so_current;
     blk->state = THINFAT_BLK_STATE_READ;
     blk->event = event;
     blk->sc_read = sc_read;
