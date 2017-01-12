@@ -26,7 +26,7 @@ thinfat_state_t;
 
 struct thinfat_phy_tag;
 struct thinfat_blk_tag;
-struct thinfat_cache_tag;
+struct thinfat_table_tag;
 
 typedef enum
 {
@@ -41,9 +41,8 @@ typedef struct thinfat_tag
   thinfat_type_t type;
   thinfat_state_t state;
   struct thinfat_phy_tag *phy;
-  struct thinfat_blk_tag *blk;
   struct thinfat_blk_tag *cur_file, *cur_dir;
-  struct thinfat_cache_tag *cache;
+  struct thinfat_table_tag *table;
   uint8_t ctos_shift;
   uint8_t table_redundancy;
   thinfat_sector_t sc_reserved;
@@ -104,6 +103,16 @@ static inline uint32_t thinfat_read_u24(void *p, size_t offset)
 static inline uint32_t thinfat_read_u32(void *p, size_t offset)
 {
   return ((uint8_t *)p)[offset] | ((uint32_t)((uint8_t *)p)[offset + 1] << 8) | ((uint32_t)((uint8_t *)p)[offset + 2] << 16) | ((uint32_t)((uint8_t *)p)[offset + 3] << 24);
+}
+
+static inline thinfat_cluster_t thinfat_stoc(thinfat_t *tf, thinfat_sector_t si)
+{
+  return ((si - tf->si_data) >> tf->ctos_shift) + 2;
+}
+
+static inline thinfat_sector_t thinfat_ctos(thinfat_t *tf, thinfat_cluster_t ci)
+{
+  return ((ci - 2) << tf->ctos_shift) + tf->si_data;
 }
 
 thinfat_result_t thinfat_initialize(thinfat_t *tf, struct thinfat_phy_tag *phy);

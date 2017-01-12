@@ -23,16 +23,16 @@ struct thinfat_cache_tag;
 
 typedef struct thinfat_blk_tag
 {
-  void *client, *seek_client;
+  void *client;
   struct thinfat_tag *parent;
   thinfat_blk_state_t state;
   thinfat_cluster_t ci_head;
   thinfat_cluster_t ci_current;
   thinfat_sector_t so_current;
-  size_t byte_pointer;
-  thinfat_core_event_t event, seek_event;
+  size_t byte_pointer, byte_advance;
+  thinfat_core_event_t event;
   struct thinfat_cache_tag *cache;
-  void *next_data;
+  void *user_buffer, *next_data;
   thinfat_sector_t so_seek;
   union
   {

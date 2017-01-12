@@ -7,20 +7,11 @@
 #include "thinfat.h"
 #include "thinfat_phy.h"
 #include "thinfat_blk.h"
+#include "thinfat_table.h"
 #include "thinfat_cache.h"
 
 #include <stdlib.h>
 #include <string.h>
-
-static inline thinfat_cluster_t thinfat_stoc(thinfat_t *tf, thinfat_sector_t si)
-{
-  return ((si - tf->si_data) >> tf->ctos_shift) + 2;
-}
-
-static inline thinfat_sector_t thinfat_ctos(thinfat_t *tf, thinfat_cluster_t ci)
-{
-  return ((ci - 2) << tf->ctos_shift) + tf->si_data;
-}
 
 thinfat_result_t thinfat_blk_callback(thinfat_blk_t *blk, thinfat_core_event_t event, thinfat_sector_t s_param, void *p_param)
 {
@@ -29,32 +20,12 @@ thinfat_result_t thinfat_blk_callback(thinfat_blk_t *blk, thinfat_core_event_t e
   blk->state = THINFAT_BLK_STATE_IDLE;
   switch(event)
   {
-  case THINFAT_BLK_EVENT_LOOKUP:
-    if (tf->type == THINFAT_TYPE_FAT32)
-    {
-      blk->ci_current = thinfat_read_u32(*(void **)p_param, (blk->ci_current * 4) % THINFAT_SECTOR_SIZE);
-      printf("Next cluster = 0x%08X\n", blk->ci_current);
-    }
-    else
-    {
-      blk->ci_current = thinfat_read_u16(*(void **)p_param, (blk->ci_current * 2) % THINFAT_SECTOR_SIZE);
-      if (blk->ci_current >= 0xFFF7)
-      {
-        blk->ci_current = THINFAT_INVALID_CLUSTER;
-      }
-    }
-    blk->so_current += (1 << tf->ctos_shift);
-    blk->state = THINFAT_BLK_STATE_IDLE;
-    if (THINFAT_IS_CLUSTER_VALID(blk->ci_current))
-      return thinfat_blk_seek(blk->seek_client, blk, blk->so_seek, blk->seek_event);
-    else
-      return thinfat_core_callback(blk->client, blk->event, THINFAT_INVALID_SECTOR, NULL);
   case THINFAT_BLK_EVENT_READ_SINGLE:
     if ((res = thinfat_core_callback(blk->client, blk->event, s_param, *(void **)p_param)) == THINFAT_RESULT_OK)
     {
       if (--blk->sc_read > 0)
       {
-        return thinfat_blk_seek(blk, blk, blk->so_current + 1, THINFAT_BLK_EVENT_READ_SINGLE_LOOKUP);
+        return thinfat_table_seek(blk, tf->table, blk->so_current + 1, THINFAT_BLK_EVENT_READ_SINGLE_LOOKUP);
       }
       else
       {
@@ -99,7 +70,7 @@ thinfat_result_t thinfat_blk_callback(thinfat_blk_t *blk, thinfat_core_event_t e
     if (p_param == NULL)
     {
       if (blk->sc_read > 0)
-        return thinfat_blk_seek(blk, blk, ((blk->so_current >> tf->ctos_shift) + 1) << tf->ctos_shift, THINFAT_BLK_EVENT_READ_CLUSTER_LOOKUP);
+        return thinfat_table_seek(blk, tf->table, ((blk->so_current >> tf->ctos_shift) + 1) << tf->ctos_shift, THINFAT_BLK_EVENT_READ_CLUSTER_LOOKUP);
       else
         return thinfat_core_callback(blk->client, blk->event, THINFAT_INVALID_SECTOR, NULL);
     }
@@ -123,7 +94,7 @@ thinfat_result_t thinfat_blk_callback(thinfat_blk_t *blk, thinfat_core_event_t e
     if (p_param == NULL)
     {
       if (blk->sc_write > 0)
-        return thinfat_blk_seek(blk, blk, ((blk->so_current >> tf->ctos_shift) + 1) << tf->ctos_shift, THINFAT_BLK_EVENT_WRITE_CLUSTER_LOOKUP);
+        return thinfat_table_seek(blk, tf->table, ((blk->so_current >> tf->ctos_shift) + 1) << tf->ctos_shift, THINFAT_BLK_EVENT_WRITE_CLUSTER_LOOKUP);
     }
     else if (*(void **)p_param == NULL)
     {
@@ -166,14 +137,6 @@ thinfat_result_t thinfat_blk_open(thinfat_blk_t *blk, thinfat_cluster_t ci)
   return THINFAT_RESULT_OK;
 }
 
-static thinfat_result_t thinfat_blk_start_lookup(thinfat_blk_t *blk, thinfat_core_event_t event)
-{
-  thinfat_t *tf = (thinfat_t *)blk->parent;
-  thinfat_sector_t si = tf->si_hidden + tf->sc_reserved + blk->ci_current / (THINFAT_SECTOR_SIZE >> tf->type);
-
-  return thinfat_cached_read_single(blk, tf->cache, si, event);
-}
-
 thinfat_result_t thinfat_blk_rewind(thinfat_blk_t *blk)
 {
   if (blk->state != THINFAT_BLK_STATE_IDLE)
@@ -184,17 +147,16 @@ thinfat_result_t thinfat_blk_rewind(thinfat_blk_t *blk)
   return THINFAT_RESULT_OK;
 }
 
-thinfat_result_t thinfat_blk_seek(void *client, thinfat_blk_t *blk, thinfat_sector_t so_seek, thinfat_core_event_t event)
+thinfat_result_t thinfat_table_seek(void *client, thinfat_table_t *table, thinfat_cluster_t ci_target, thinfat_sector_t so_seek, thinfat_core_event_t event)
 {
-  thinfat_t *tf = (thinfat_t *)blk->parent;
+  thinfat_t *tf = (thinfat_t *)table->parent;
 
-  if (blk->state != THINFAT_BLK_STATE_IDLE)
-    return THINFAT_RESULT_BLK_BUSY;
+  if (table->state != THINFAT_TABLE_STATE_IDLE)
+    return THINFAT_RESULT_TABLE_BUSY;
 
-  if (blk->ci_current == 0)
+  if (ci_target == 0)
   {
-    blk->so_current = so_seek;
-    return thinfat_core_callback(client, event, so_seek, NULL);
+    return thinfat_core_callback(client, event, so_seek, &ci_target);
   }
   else
   {
@@ -217,10 +179,8 @@ thinfat_result_t thinfat_blk_seek(void *client, thinfat_blk_t *blk, thinfat_sect
         blk->ci_current = blk->ci_head;
       }
       blk->state = THINFAT_BLK_STATE_SEEK;
-      blk->seek_event = event;
-      blk->seek_client = client;
       blk->so_seek = so_seek;
-      return thinfat_blk_start_lookup(blk, THINFAT_BLK_EVENT_LOOKUP);
+      return thinfat_table_lookup(blk, tf->table, blk->ci_current, THINFAT_BLK_EVENT_SEEK_LOOKUP);
     }
   }
   return THINFAT_RESULT_OK;
