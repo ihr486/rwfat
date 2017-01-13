@@ -34,9 +34,9 @@ thinfat_result_t thinfat_table_callback(thinfat_table_t *table, thinfat_core_eve
 
 thinfat_result_t thinfat_table_init(thinfat_table_t *table, thinfat_t *parent);
 thinfat_result_t thinfat_table_seek(void *client, thinfat_table_t *table, thinfat_sector_t so_seek, thinfat_core_event_t event);
-thinfat_result_t thinfat_table_allocate(void *client, thinfat_table_t *table, thinfat_cluster_t cc_dealloc, thinfat_core_event_t event);
+thinfat_result_t thinfat_table_allocate(void *client, thinfat_table_t *table, thinfat_cluster_t cc_alloc, thinfat_core_event_t event);
 thinfat_result_t thinfat_table_deallocate(void *client, thinfat_table_t *table, thinfat_cluster_t ci_dealloc, thinfat_cluster_t cc_dealloc, thinfat_core_event_t event);
-thinfat_result_t thinfat_table_append(void *client, thinfat_table_t *table, thinfat_cluster_t ci_from, thinfat_cluster_t ci_to, thinfat_core_event_t event);
+thinfat_result_t thinfat_table_concatenate(void *client, thinfat_table_t *table, thinfat_cluster_t ci_from, thinfat_cluster_t ci_to, thinfat_core_event_t event);
 thinfat_result_t thinfat_table_truncate(void *client, thinfat_table_t *table, thinfat_cluster_t ci_from, thinfat_core_event_t event);
 
 #endif

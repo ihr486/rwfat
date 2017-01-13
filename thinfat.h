@@ -53,6 +53,7 @@ typedef struct thinfat_tag
   thinfat_sector_t si_data;
   thinfat_sector_t si_hidden;
   thinfat_sector_t si_root;
+  thinfat_cluster_t cc_free, ci_next_free;
   thinfat_event_t event;
   union
   {

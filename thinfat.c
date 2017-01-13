@@ -28,6 +28,7 @@ static thinfat_result_t thinfat_find_file_by_longname_callback(thinfat_t *tf, vo
 static thinfat_result_t thinfat_find_file_callback(thinfat_t *tf, void *entries);
 static thinfat_result_t thinfat_read_file_callback(thinfat_t *tf, thinfat_sector_t s_param, void *p_param);
 static thinfat_result_t thinfat_write_file_callback(thinfat_t *tf, thinfat_sector_t s_param, void *p_param);
+static thinfat_result_t thinfat_read_fsinfo_callback(thinfat_t *tf, void *fsi);
 
 static inline thinfat_sector_t thinfat_root_sector(thinfat_t *tf)
 {
@@ -65,6 +66,8 @@ thinfat_result_t thinfat_core_callback(void *instance, thinfat_core_event_t even
       return thinfat_read_mbr_callback((thinfat_t *)instance, *(void **)p_param);
     case THINFAT_CORE_EVENT_READ_BPB:
       return thinfat_read_parameter_block_callback((thinfat_t *)instance, *(void **)p_param);
+    case THINFAT_CORE_EVENT_READ_FSINFO:
+      return thinfat_read_fsinfo_callback((thinfat_t *)instance, *(void **)p_param);
     case THINFAT_CORE_EVENT_DUMP_DIR:
       return thinfat_dump_dir_callback((thinfat_t *)instance, p_param);
     case THINFAT_CORE_EVENT_FIND_FILE:
@@ -178,6 +181,33 @@ static thinfat_result_t thinfat_read_parameter_block_callback(thinfat_t *tf, voi
 
   thinfat_blk_open(tf->cur_dir, tf->ci_root);
 
+  if (tf->type == THINFAT_TYPE_FAT16)
+    return thinfat_core_callback(tf, tf->event, tf->si_hidden, NULL);
+  else
+  {
+    thinfat_sector_t si_fsinfo = tf->si_hidden + thinfat_read_u16(bpb, 48);
+
+    return thinfat_cached_read_single(tf, tf->table->cache, si_fsinfo, THINFAT_CORE_EVENT_READ_FSINFO);
+  }
+}
+
+static thinfat_result_t thinfat_read_fsinfo_callback(thinfat_t *tf, void *fsi)
+{
+  uint32_t leadsig = thinfat_read_u32(fsi, 0);
+  if (leadsig != 0x41615252)
+    return THINFAT_RESULT_ERROR_SIGNATURE;
+
+  uint32_t strucsig = thinfat_read_u32(fsi, 484);
+  if (strucsig != 0x61417272)
+    return THINFAT_RESULT_ERROR_SIGNATURE;
+
+  uint32_t trailsig = thinfat_read_u32(fsi, 508);
+  if (trailsig != 0xAA550000)
+    return THINFAT_RESULT_ERROR_SIGNATURE;
+
+  tf->cc_free = thinfat_read_u32(fsi, 488);
+  tf->ci_next_free = thinfat_read_u32(fsi, 492);
+    
   return thinfat_core_callback(tf, tf->event, tf->si_hidden, NULL);
 }
 

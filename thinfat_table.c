@@ -92,3 +92,20 @@ thinfat_result_t thinfat_table_init(thinfat_table_t *table, thinfat_t *parent)
   thinfat_cache_init(table->cache, parent);
   return THINFAT_RESULT_OK;
 }
+
+thinfat_result_t thinfat_table_allocate(void *client, thinfat_table_t *table, thinfat_cluster_t cc_allocate, thinfat_core_event_t event)
+{
+  thinfat_t *tf = (thinfat_t *)table->parent;
+}
+
+thinfat_result_t thinfat_table_deallocate(void *client, thinfat_table_t *table, thinfat_cluster_t ci_deallocate, thinfat_cluster_t cc_deallocate, thinfat_core_event_t event)
+{
+}
+
+thinfat_result_t thinfat_table_concatenate(void *client, thinfat_table_t *table, thinfat_cluster_t ci_from, thinfat_cluster_t ci_to, thinfat_core_event_t event)
+{
+}
+
+thinfat_result_t thinfat_table_truncate(void *client, thinfat_table_t *table, thinfat_cluster_t ci_from, thinfat_core_event_t event)
+{
+}
