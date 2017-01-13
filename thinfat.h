@@ -115,6 +115,8 @@ static inline thinfat_sector_t thinfat_ctos(thinfat_t *tf, thinfat_cluster_t ci)
   return ((ci - 2) << tf->ctos_shift) + tf->si_data;
 }
 
+thinfat_result_t thinfat_core_callback(void *instance, thinfat_core_event_t event, thinfat_sector_t s_param, void *p_param);
+
 thinfat_result_t thinfat_initialize(thinfat_t *tf, struct thinfat_phy_tag *phy);
 thinfat_result_t thinfat_finalize(thinfat_t *tf);
 

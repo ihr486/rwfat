@@ -8,6 +8,7 @@
 #include "thinfat_phy.h"
 #include "thinfat_cache.h"
 #include "thinfat_blk.h"
+#include "thinfat_table.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -55,7 +56,7 @@ static inline thinfat_sector_t thinfat_root_sector_count(thinfat_t *tf)
 
 thinfat_result_t thinfat_core_callback(void *instance, thinfat_core_event_t event, thinfat_sector_t s_param, void *p_param)
 {
-  //THINFAT_INFO("Core callback: %p, %d, " TFF_X32 ", %p\n", instance, event, s_param, p_param);
+  THINFAT_INFO("Core callback: %p, %d, " TFF_X32 ", %p\n", instance, event, s_param, p_param);
   if (event < THINFAT_CORE_EVENT_MAX)
   {
     switch(event)
