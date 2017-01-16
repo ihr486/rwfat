@@ -397,7 +397,6 @@ static thinfat_result_t thinfat_read_file_callback(thinfat_t *tf, thinfat_sector
 {
   if (p_param == NULL)
   {
-    tf->cur_file->byte_pointer += tf->cur_file->byte_advance;
     return thinfat_core_callback(tf, tf->event, s_param, p_param);
   }
   else if (*(void **)p_param == NULL)
@@ -406,6 +405,35 @@ static thinfat_result_t thinfat_read_file_callback(thinfat_t *tf, thinfat_sector
   }
   else
   {
+    size_t advance;
+    if (tf->cur_file->byte_pointer % THINFAT_SECTOR_SIZE > 0)
+    {
+      advance = THINFAT_SECTOR_SIZE - (tf->cur_file->byte_pointer % THINFAT_SECTOR_SIZE);
+      if (advance > tf->cur_file->byte_advance)
+      {
+        advance = tf->cur_file->byte_advance;
+      }
+      memcpy(tf->cur_file->user_buffer, (uint8_t *)*(void **)p_param + (tf->cur_file->byte_pointer % THINFAT_SECTOR_SIZE), advance);
+    }
+    else
+    {
+      advance = THINFAT_SECTOR_SIZE;
+      if (advance > tf->cur_file->byte_advance)
+      {
+        advance = tf->cur_file->byte_advance;
+        memcpy(tf->cur_file->user_buffer, *(void **)p_param, advance);
+      }
+    }
+    tf->cur_file->user_buffer = (uint8_t *)tf->cur_file->user_buffer + advance;
+    tf->cur_file->byte_advance -= advance;
+    if (tf->cur_file->byte_advance >= THINFAT_SECTOR_SIZE)
+    {
+      *(void **)p_param = tf->cur_file->user_buffer;
+    }
+    else
+    {
+      *(void **)p_param = tf->cur_file->cache->data;
+    }
   }
   THINFAT_INFO("Read callback @ " TFF_X32 " = %p\n", s_param, *(void **)p_param);
   return THINFAT_RESULT_OK;
@@ -413,6 +441,38 @@ static thinfat_result_t thinfat_read_file_callback(thinfat_t *tf, thinfat_sector
 
 static thinfat_result_t thinfat_write_file_callback(thinfat_t *tf, thinfat_sector_t s_param, void *p_param)
 {
+  if (p_param == NULL)
+  {
+    return thinfat_core_callback(tf, tf->event, s_param, p_param);
+  }
+  else if (*(void **)p_param == NULL)
+  {
+    size_t advance = THINFAT_SECTOR_SIZE - (tf->cur_file->byte_pointer % THINFAT_SECTOR_SIZE);
+    if (advance > tf->cur_file->byte_advance)
+    {
+      advance = tf->cur_file->byte_advance;
+    }
+    memcpy(tf->cur_file->cache->data, tf->cur_file->user_buffer, advance);
+    *(void **)p_param = tf->cur_file->cache->data;
+    tf->cur_file->byte_pointer += advance;
+    tf->cur_file->user_buffer = (uint8_t *)tf->cur_file->user_buffer + advance;
+  }
+  else
+  {
+    size_t advance = THINFAT_SECTOR_SIZE;
+    if (advance > tf->cur_file->byte_advance)
+    {
+      advance = tf->cur_file->byte_advance;
+      memcpy(tf->cur_file->cache->data, tf->cur_file->user_buffer, advance);
+      *(void **)p_param = tf->cur_file->cache->data;
+    }
+    else
+    {
+      *(void **)p_param = tf->cur_file->user_buffer;
+    }
+    tf->cur_file->byte_advance -= advance;
+    tf->cur_file->user_buffer = (uint8_t *)tf->cur_file->user_buffer + advance;
+  }
   THINFAT_INFO("Write callback @ " TFF_X32 " = %p\n", s_param, *(void **)p_param);
   return THINFAT_RESULT_OK;
 }
