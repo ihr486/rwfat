@@ -26,7 +26,20 @@ typedef struct thinfat_table_tag
   struct thinfat_tag *parent;
   thinfat_core_event_t event;
   struct thinfat_cache_tag *cache;
-  thinfat_sector_t so_seek;
+  union
+  {
+    thinfat_sector_t so_seek;
+    struct
+    {
+      thinfat_cluster_t cc_search_count;
+      thinfat_cluster_t cc_search;
+    };
+    struct
+    {
+      thinfat_cluster_t ci_from;
+      thinfat_cluster_t ci_to;
+    };
+  };
 }
 thinfat_table_t;
 

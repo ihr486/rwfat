@@ -20,4 +20,6 @@ tfwrap_result_t tfwrap_find_file_by_longname(thinfat_t *tf, const wchar_t *longn
 tfwrap_result_t tfwrap_read_file(thinfat_t *tf, void *buf, size_t size);
 tfwrap_result_t tfwrap_write_file(thinfat_t *tf, const void *buf, size_t size);
 
+tfwrap_result_t tfwrap_allocate_cluster(thinfat_t *tf, thinfat_cluster_t cc_allocate);
+
 #endif

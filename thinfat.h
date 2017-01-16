@@ -86,24 +86,50 @@ thinfat_lfn_entry_t;
 
 thinfat_result_t thinfat_user_callback(thinfat_t *tf, thinfat_event_t event, thinfat_sector_t s_param, void *p_param);
 
-static inline uint8_t thinfat_read_u8(void *p, size_t offset)
+static inline uint8_t thinfat_read_u8(const void *p, size_t offset)
 {
-  return ((uint8_t *)p)[offset];
+  return ((const uint8_t *)p)[offset];
 }
 
-static inline uint16_t thinfat_read_u16(void *p, size_t offset)
+static inline uint16_t thinfat_read_u16(const void *p, size_t offset)
 {
-  return ((uint8_t *)p)[offset] | ((uint16_t)((uint8_t *)p)[offset + 1] << 8);
+  return ((const uint8_t *)p)[offset] | ((uint16_t)((const uint8_t *)p)[offset + 1] << 8);
 }
 
-static inline uint32_t thinfat_read_u24(void *p, size_t offset)
+static inline uint32_t thinfat_read_u24(const void *p, size_t offset)
 {
-  return ((uint8_t *)p)[offset] | ((uint32_t)((uint8_t *)p)[offset + 1] << 8) | ((uint32_t)((uint8_t *)p)[offset + 2] << 16);
+  return ((const uint8_t *)p)[offset] | ((uint32_t)((const uint8_t *)p)[offset + 1] << 8) | ((uint32_t)((const uint8_t *)p)[offset + 2] << 16);
 }
 
-static inline uint32_t thinfat_read_u32(void *p, size_t offset)
+static inline uint32_t thinfat_read_u32(const void *p, size_t offset)
 {
-  return ((uint8_t *)p)[offset] | ((uint32_t)((uint8_t *)p)[offset + 1] << 8) | ((uint32_t)((uint8_t *)p)[offset + 2] << 16) | ((uint32_t)((uint8_t *)p)[offset + 3] << 24);
+  return ((const uint8_t *)p)[offset] | ((uint32_t)((const uint8_t *)p)[offset + 1] << 8) | ((uint32_t)((const uint8_t *)p)[offset + 2] << 16) | ((uint32_t)((const uint8_t *)p)[offset + 3] << 24);
+}
+
+static inline void thinfat_write_u8(void *p, size_t offset, uint8_t value)
+{
+  ((uint8_t *)p)[offset] = value;
+}
+
+static inline void thinfat_write_u16(void *p, size_t offset, uint16_t value)
+{
+  ((uint8_t *)p)[offset] = value & 0xFF;
+  ((uint8_t *)p)[offset + 1] = (value >> 8) & 0xFF;
+}
+
+static inline void thinfat_write_u24(void *p, size_t offset, uint32_t value)
+{
+  ((uint8_t *)p)[offset] = value & 0xFF;
+  ((uint8_t *)p)[offset + 1] = (value >> 8) & 0xFF;
+  ((uint8_t *)p)[offset + 2] = (value >> 16) & 0xFF;
+}
+
+static inline void thinfat_write_u32(void *p, size_t offset, uint32_t value)
+{
+  ((uint8_t *)p)[offset] = value & 0xFF;
+  ((uint8_t *)p)[offset + 1] = (value >> 8) & 0xFF;
+  ((uint8_t *)p)[offset + 2] = (value >> 16) & 0xFF;
+  ((uint8_t *)p)[offset + 3] = (value >> 24) & 0xFF;
 }
 
 static inline thinfat_cluster_t thinfat_stoc(thinfat_t *tf, thinfat_sector_t si)

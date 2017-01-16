@@ -7,6 +7,8 @@
 #include "thinfat_wrap.h"
 #include "thinfat_phy.h"
 
+#include "thinfat_table.h"
+
 #include <string.h>
 
 thinfat_result_t thinfat_user_callback(thinfat_t *tf, thinfat_event_t event, thinfat_sector_t s_param, void *p_param)
@@ -28,6 +30,9 @@ thinfat_result_t thinfat_user_callback(thinfat_t *tf, thinfat_event_t event, thi
   case THINFAT_EVENT_READ_FILE:
     break;
   case THINFAT_EVENT_WRITE_FILE:
+    break;
+  case THINFAT_EVENT_ALLOCATE:
+    printf("Cluster allocation completed.\n");
     break;
   }
   tf->phy->cb_flag = true;
@@ -85,4 +90,10 @@ thinfat_result_t tfwrap_write_file(thinfat_t *tf, const void *buf, size_t size)
   thinfat_phy_enter(tf->phy);
   tf->phy->arg = buf;
   return thinfat_phy_leave(tf->phy, thinfat_write_file(tf, buf, size, THINFAT_EVENT_WRITE_FILE));
+}
+
+thinfat_result_t tfwrap_allocate_cluster(thinfat_t *tf, thinfat_cluster_t cc_allocate)
+{
+  thinfat_phy_enter(tf->phy);
+  return thinfat_phy_leave(tf->phy, thinfat_table_allocate(tf, tf->table, cc_allocate, THINFAT_EVENT_ALLOCATE));
 }

@@ -182,7 +182,12 @@ static thinfat_result_t thinfat_read_parameter_block_callback(thinfat_t *tf, voi
   thinfat_blk_open(tf->cur_dir, tf->ci_root);
 
   if (tf->type == THINFAT_TYPE_FAT16)
+  {
+    tf->ci_next_free = 2;
+    tf->cc_free = 0;
+
     return thinfat_core_callback(tf, tf->event, tf->si_hidden, NULL);
+  }
   else
   {
     thinfat_sector_t si_fsinfo = tf->si_hidden + thinfat_read_u16(bpb, 48);

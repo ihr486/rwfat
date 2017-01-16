@@ -43,5 +43,9 @@ thinfat_cache_t;
 thinfat_result_t thinfat_cache_callback(thinfat_cache_t *cache, thinfat_core_event_t event, thinfat_sector_t s_param, void *p_param);
 thinfat_result_t thinfat_cache_init(thinfat_cache_t *cache, struct thinfat_tag *parent);
 thinfat_result_t thinfat_cached_read_single(void *client, thinfat_cache_t *cache, thinfat_sector_t si_read, thinfat_core_event_t event);
+static inline void thinfat_cache_touch(thinfat_cache_t *cache)
+{
+  cache->state = THINFAT_CACHE_STATE_DIRTY;
+}
 
 #endif
