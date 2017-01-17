@@ -140,6 +140,7 @@ static thinfat_result_t thinfat_table_create_chain_callback(thinfat_table_t *tab
       }
     }
   }
+  thinfat_cache_touch(table->cache);
   table->ci_from = (table->ci_from + (THINFAT_SECTOR_SIZE >> tf->type)) / (THINFAT_SECTOR_SIZE >> tf->type) * (THINFAT_SECTOR_SIZE >> tf->type);
   return thinfat_cached_read_single(table, table->cache, s_param + 1, THINFAT_TABLE_EVENT_CREATE_CHAIN_READ);
 }
@@ -201,6 +202,8 @@ static thinfat_result_t thinfat_table_deallocate_callback(thinfat_table_t *table
       return thinfat_core_callback(table->client, table->event, THINFAT_INVALID_SECTOR, NULL);
     }
   }
+  thinfat_cache_touch(table->cache);
+  table->ci_from = (table->ci_from + (THINFAT_SECTOR_SIZE >> tf->type)) / (THINFAT_SECTOR_SIZE >> tf->type) * (THINFAT_SECTOR_SIZE >> tf->type);
   return thinfat_cached_read_single(table, table->cache, s_param + 1, THINFAT_TABLE_EVENT_DEALLOCATE_READ);
 }
 
