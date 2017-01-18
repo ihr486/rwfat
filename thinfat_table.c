@@ -36,9 +36,6 @@ thinfat_result_t thinfat_table_seek(void *client, thinfat_table_t *table, thinfa
     }
     else
     {
-      if (table->state != THINFAT_TABLE_STATE_IDLE)
-        return THINFAT_RESULT_TABLE_BUSY;
-
       if (so_seek < blk->so_current)
       {
         blk->so_current = 0;
@@ -62,7 +59,6 @@ thinfat_result_t thinfat_table_callback(thinfat_table_t *table, thinfat_core_eve
 {
   thinfat_t *tf = (thinfat_t *)table->parent;
   thinfat_blk_t *blk = (thinfat_blk_t *)table->client;
-  table->state = THINFAT_TABLE_STATE_IDLE;
   switch(event)
   {
   case THINFAT_TABLE_EVENT_LOOKUP:
@@ -207,12 +203,10 @@ static thinfat_result_t thinfat_table_deallocate_callback(thinfat_table_t *table
   return thinfat_cached_read_single(table, table->cache, s_param + 1, THINFAT_TABLE_EVENT_DEALLOCATE_READ);
 }
 
-thinfat_result_t thinfat_table_init(thinfat_table_t *table, thinfat_t *parent)
+thinfat_result_t thinfat_table_init(thinfat_table_t *table, thinfat_t *parent, thinfat_cache_t *cache)
 {
   table->parent = parent;
-  table->state = THINFAT_TABLE_STATE_IDLE;
-  table->cache = (thinfat_cache_t *)malloc(sizeof(thinfat_cache_t));
-  thinfat_cache_init(table->cache, parent);
+  table->cache = cache;
   return THINFAT_RESULT_OK;
 }
 

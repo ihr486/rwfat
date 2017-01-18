@@ -71,9 +71,12 @@ int main(int argc, const char *argv[])
 
   thinfat_open_file(&tf, &entry);
 
+  size_t read;
 #define READ_SIZE (10000000)
   char *read_buf = (char *)malloc(READ_SIZE);
-  tfwrap_read_file(&tf, read_buf, READ_SIZE);
+  tfwrap_read_file(&tf, read_buf, READ_SIZE, &read);
+
+  printf("%u bytes read.\n", read);
 
   //tfwrap_allocate_cluster(&tf, 50000);
 
@@ -83,8 +86,9 @@ int main(int argc, const char *argv[])
 
   thinfat_phy_finalize(&phy);
 
-  FILE *fp = fopen("dump.txt", "w");
-  fwrite(read_buf, READ_SIZE, 1, fp);
+  FILE *fp = fopen("dump.txt", "wb");
+  printf("%u bytes read.\n", read);
+  printf("%u\n", fwrite(read_buf, read, 1, fp));
   fclose(fp);
 
   return EXIT_SUCCESS;

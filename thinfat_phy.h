@@ -37,10 +37,8 @@ typedef struct thinfat_phy_tag
   pthread_mutex_t lock;
   pthread_cond_t cond;
   bool exit_flag;
-  thinfat_sector_t s_param_cb;
-  void *p_param_cb;
   bool cb_flag;
-  void *arg;
+  void *arg, *arg2;
 }
 thinfat_phy_t;
 

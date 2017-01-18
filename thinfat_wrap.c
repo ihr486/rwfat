@@ -15,10 +15,8 @@ thinfat_result_t thinfat_user_callback(thinfat_t *tf, thinfat_event_t event, thi
 {
   switch(event)
   {
-  case THINFAT_USER_EVENT:
+  case THINFAT_USER_EVENT + 1:
     printf("User event #1 detected.\n");
-    tf->phy->s_param_cb = s_param;
-    tf->phy->p_param_cb = p_param;
     break;
   case THINFAT_EVENT_FIND_FILE:
     printf("Find file event detected.\n");
@@ -28,8 +26,12 @@ thinfat_result_t thinfat_user_callback(thinfat_t *tf, thinfat_event_t event, thi
       ((thinfat_dir_entry_t *)tf->phy->arg)->name[0] = 0x00;
     break;
   case THINFAT_EVENT_READ_FILE:
+    THINFAT_INFO("READ_FILE callback: " TFF_U32 "\n", *(uint32_t *)p_param);
+    *(size_t *)tf->phy->arg2 = *(uint32_t *)p_param;
     break;
   case THINFAT_EVENT_WRITE_FILE:
+    THINFAT_INFO("WRITE_FILE callback: " TFF_U32 "\n", *(uint32_t *)p_param);
+    *(size_t *)tf->phy->arg2 = *(uint32_t *)p_param;
     break;
   case THINFAT_EVENT_ALLOCATE:
     printf("Cluster allocation completed.\n");
@@ -78,17 +80,19 @@ thinfat_result_t tfwrap_find_file_by_longname(thinfat_t *tf, const wchar_t *long
   return thinfat_phy_leave(tf->phy, thinfat_find_file_by_longname(tf, longname, THINFAT_EVENT_FIND_FILE));
 }
 
-thinfat_result_t tfwrap_read_file(thinfat_t *tf, void *buf, size_t size)
+thinfat_result_t tfwrap_read_file(thinfat_t *tf, void *buf, size_t size, size_t *read)
 {
   thinfat_phy_enter(tf->phy);
   tf->phy->arg = buf;
+  tf->phy->arg2 = read;
   return thinfat_phy_leave(tf->phy, thinfat_read_file(tf, buf, size, THINFAT_EVENT_READ_FILE));
 }
 
-thinfat_result_t tfwrap_write_file(thinfat_t *tf, const void *buf, size_t size)
+thinfat_result_t tfwrap_write_file(thinfat_t *tf, const void *buf, size_t size, size_t *written)
 {
   thinfat_phy_enter(tf->phy);
   tf->phy->arg = buf;
+  tf->phy->arg2 = written;
   return thinfat_phy_leave(tf->phy, thinfat_write_file(tf, buf, size, THINFAT_EVENT_WRITE_FILE));
 }
 

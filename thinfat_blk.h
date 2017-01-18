@@ -9,33 +9,20 @@
 
 #include "thinfat_common.h"
 
-typedef enum
-{
-  THINFAT_BLK_STATE_IDLE = 0,
-  THINFAT_BLK_STATE_SEEK,
-  THINFAT_BLK_STATE_READ,
-  THINFAT_BLK_STATE_WRITE
-}
-thinfat_blk_state_t;
-
 struct thinfat_tag;
 struct thinfat_cache_tag;
+struct thinfat_dir_entry_tag;
 
 typedef struct thinfat_blk_tag
 {
   void *client;
   struct thinfat_tag *parent;
-  thinfat_blk_state_t state;
+  struct thinfat_cache_tag *cache;
   thinfat_cluster_t ci_head;
   thinfat_cluster_t ci_current;
-  thinfat_sector_t so_current;
-  uint32_t file_size;
-  uint32_t byte_pointer, byte_advance;
+  thinfat_off_t position;
   thinfat_core_event_t event;
-  struct thinfat_cache_tag *cache;
-  void *user_buffer, *next_data;
-  thinfat_sector_t so_seek;
-  uint32_t byte_counter;
+  void *next_data;
   union
   {
     thinfat_sector_t sc_read;
@@ -45,8 +32,8 @@ typedef struct thinfat_blk_tag
 thinfat_blk_t;
 
 thinfat_result_t thinfat_blk_callback(thinfat_blk_t *blk, thinfat_core_event_t event, thinfat_sector_t s_param, void *p_param);
-thinfat_result_t thinfat_blk_init(thinfat_blk_t *blk, struct thinfat_tag *parent);
-thinfat_result_t thinfat_blk_open(thinfat_blk_t *blk, const thinfat_dir_entry_t *entry);
+thinfat_result_t thinfat_blk_init(thinfat_blk_t *blk, struct thinfat_tag *parent, struct thinfat_cache_tag *cache);
+thinfat_result_t thinfat_blk_open(thinfat_blk_t *blk, const struct thinfat_dir_entry_tag *entry);
 thinfat_result_t thinfat_blk_rewind(thinfat_blk_t *blk);
 thinfat_result_t thinfat_blk_seek(void *client, thinfat_blk_t *blk, thinfat_sector_t so_seek, thinfat_core_event_t event);
 thinfat_result_t thinfat_blk_read_each_sector(void *client, thinfat_blk_t *blk, thinfat_sector_t sc_read, thinfat_core_event_t event);

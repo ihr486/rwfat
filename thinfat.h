@@ -25,8 +25,9 @@ typedef enum
 thinfat_state_t;
 
 struct thinfat_phy_tag;
-struct thinfat_blk_tag;
 struct thinfat_table_tag;
+struct thinfat_dir_tag;
+struct thinfat_cache_tag;
 
 typedef enum
 {
@@ -41,8 +42,9 @@ typedef struct thinfat_tag
   thinfat_type_t type;
   thinfat_state_t state;
   struct thinfat_phy_tag *phy;
-  struct thinfat_blk_tag *cur_file, *cur_dir;
+  struct thinfat_dir_tag *cur_dir;
   struct thinfat_table_tag *table;
+  struct thinfat_cache_tag *table_cache, *dir_cache, *file_cache;
   uint8_t ctos_shift;
   uint8_t table_redundancy;
   thinfat_sector_t sc_reserved;
@@ -55,34 +57,8 @@ typedef struct thinfat_tag
   thinfat_sector_t si_root;
   thinfat_cluster_t cc_free, ci_next_free;
   thinfat_event_t event;
-  union
-  {
-    struct
-    {
-      const void *target_name;
-      int nc_matched;
-      uint8_t checksum;
-    };
-  };
 }
 thinfat_t;
-
-typedef struct thinfat_dir_entry_tag
-{
-  uint8_t attr;
-  uint8_t name[12];
-  thinfat_cluster_t ci_head;
-  uint32_t size;
-}
-thinfat_dir_entry_t;
-
-typedef struct thinfat_lfn_entry_tag
-{
-  uint8_t order;
-  uint8_t checksum;
-  wchar_t partial_name[14];
-}
-thinfat_lfn_entry_t;
 
 thinfat_result_t thinfat_user_callback(thinfat_t *tf, thinfat_event_t event, thinfat_sector_t s_param, void *p_param);
 
@@ -150,12 +126,5 @@ thinfat_result_t thinfat_finalize(thinfat_t *tf);
 thinfat_result_t thinfat_find_partition(thinfat_t *tf, thinfat_event_t event);
 thinfat_result_t thinfat_mount(thinfat_t *tf, thinfat_sector_t sector, thinfat_event_t event);
 thinfat_result_t thinfat_unmount(thinfat_t *tf, thinfat_event_t event);
-thinfat_result_t thinfat_dump_current_directory(thinfat_t *tf, thinfat_event_t event);
-thinfat_result_t thinfat_find_file(thinfat_t *tf, const char *name, thinfat_event_t event);
-thinfat_result_t thinfat_find_file_by_longname(thinfat_t *tf, const wchar_t *longname, thinfat_event_t event);
-thinfat_result_t thinfat_chdir(thinfat_t *tf, thinfat_cluster_t ci);
-thinfat_result_t thinfat_open_file(thinfat_t *tf, const thinfat_dir_entry_t *entry);
-thinfat_result_t thinfat_read_file(thinfat_t *tf, void *buf, size_t size, thinfat_event_t event);
-thinfat_result_t thinfat_write_file(thinfat_t *tf, const void *buf, size_t size, thinfat_event_t event);
 
 #endif
