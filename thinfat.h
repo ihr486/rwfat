@@ -118,6 +118,23 @@ static inline thinfat_sector_t thinfat_ctos(thinfat_t *tf, thinfat_cluster_t ci)
   return ((ci - 2) << tf->ctos_shift) + tf->si_data;
 }
 
+typedef struct thinfat_dir_entry_tag
+{
+  uint8_t attr;
+  uint8_t name[12];
+  thinfat_cluster_t ci_head;
+  uint32_t size;
+}
+thinfat_dir_entry_t;
+
+typedef struct thinfat_lfn_entry_tag
+{
+  uint8_t order;
+  uint8_t checksum;
+  wchar_t partial_name[14];
+}
+thinfat_lfn_entry_t;
+
 thinfat_result_t thinfat_core_callback(void *instance, thinfat_core_event_t event, thinfat_sector_t s_param, void *p_param);
 
 thinfat_result_t thinfat_initialize(thinfat_t *tf, struct thinfat_phy_tag *phy);

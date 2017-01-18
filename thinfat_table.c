@@ -5,18 +5,30 @@
  * @author Hiroka IHARA
  */
 #include "thinfat.h"
-#include "thinfat_blk.h"
 #include "thinfat_table.h"
 #include "thinfat_cache.h"
 
 #include <stdlib.h>
 
-thinfat_result_t thinfat_table_seek(void *client, thinfat_table_t *table, thinfat_cluster_t ci_current, thinfat_cluster_t cc_seek, thinfat_core_event_t event)
+thinfat_result_t thinfat_table_lookup(void *client, thinfat_table_t *table, thinfat_cluster_t ci_current, thinfat_sector_t so_current, thinfat_sector_t so_seek, thinfat_core_event_t event)
 {
   thinfat_t *tf = (thinfat_t *)table->parent;
+  if (ci_current == 0 || (so_current >> tf->ctos_shift) == (so_seek >> tf->ctos_shift))
+  {
+    return thinfat_core_callback(client, event, so_seek, &ci_current);
+  }
+  else
+  {
+    thinfat_sector_t si_read = tf->si_hidden + tf->sc_reserved + ci_current / (THINFAT_SECTOR_SIZE >> tf->type);
+    table->ci_current = ci_current;
+    table->so_seek = so_seek;
+    table->client = client;
+    table->event = event;
+    return thinfat_cached_read_single(table, table->cache, si_read, THINFAT_TABLE_EVENT_LOOKUP);
+  }
 }
 
-thinfat_result_t thinfat_table_seek(void *client, thinfat_table_t *table, thinfat_sector_t so_seek, thinfat_core_event_t event)
+/*thinfat_result_t thinfat_table_seek(void *client, thinfat_table_t *table, thinfat_sector_t so_seek, thinfat_core_event_t event)
 {
   thinfat_t *tf = (thinfat_t *)table->parent;
   thinfat_blk_t *blk = (thinfat_blk_t *)client;
@@ -54,7 +66,7 @@ thinfat_result_t thinfat_table_seek(void *client, thinfat_table_t *table, thinfa
     }
   }
   return THINFAT_RESULT_OK;
-}
+}*/
 
 static thinfat_result_t thinfat_table_search_read_callback(thinfat_table_t *table, thinfat_sector_t s_param, void *p_param);
 static thinfat_result_t thinfat_table_create_chain_callback(thinfat_table_t *table, thinfat_sector_t s_param, void *p_param);
@@ -63,28 +75,24 @@ static thinfat_result_t thinfat_table_deallocate_callback(thinfat_table_t *table
 thinfat_result_t thinfat_table_callback(thinfat_table_t *table, thinfat_core_event_t event, thinfat_sector_t s_param, void *p_param)
 {
   thinfat_t *tf = (thinfat_t *)table->parent;
-  thinfat_blk_t *blk = (thinfat_blk_t *)table->client;
+  thinfat_cluster_t ci_next;
   switch(event)
   {
   case THINFAT_TABLE_EVENT_LOOKUP:
     if (tf->type == THINFAT_TYPE_FAT32)
     {
-      blk->ci_current = thinfat_read_u32(*(void **)p_param, (blk->ci_current * 4) % THINFAT_SECTOR_SIZE);
-      printf("Next cluster = 0x%08X\n", blk->ci_current);
+      ci_next = thinfat_read_u32(*(void **)p_param, (table->ci_current * 4) % THINFAT_SECTOR_SIZE);
+      printf("Next cluster = 0x%08X\n", ci_next);
     }
     else
     {
-      blk->ci_current = thinfat_read_u16(*(void **)p_param, (blk->ci_current * 2) % THINFAT_SECTOR_SIZE);
-      if (blk->ci_current >= 0xFFF7)
+      ci_next = thinfat_read_u16(*(void **)p_param, (table->ci_current * 2) % THINFAT_SECTOR_SIZE);
+      if (ci_next >= 0xFFF7)
       {
-        blk->ci_current = THINFAT_INVALID_CLUSTER;
+        ci_next = THINFAT_INVALID_CLUSTER;
       }
     }
-    blk->so_current += 1 << tf->ctos_shift;
-    if (THINFAT_IS_CLUSTER_VALID(blk->ci_current))
-      return thinfat_table_seek(table->client, table, table->so_seek, table->event);
-    else
-      return thinfat_core_callback(table->client, table->event, blk->so_current, NULL);
+    return thinfat_core_callback(table->client, table->event, table->so_seek, &ci_next);
   case THINFAT_TABLE_EVENT_SEARCH_READ:
     return thinfat_table_search_read_callback(table, s_param, p_param);
   case THINFAT_TABLE_EVENT_SEARCH_FOUND:
@@ -185,7 +193,6 @@ static thinfat_result_t thinfat_table_deallocate_callback(thinfat_table_t *table
 {
   thinfat_t *tf = (thinfat_t *)table->parent;
   unsigned int i = table->ci_from % (THINFAT_SECTOR_SIZE >> tf->type);
-  thinfat_cluster_t ci_start = (s_param - tf->si_hidden - tf->sc_reserved) * (THINFAT_SECTOR_SIZE >> tf->type);
 
   for (; i < THINFAT_SECTOR_SIZE >> tf->type; i++)
   {
@@ -223,8 +230,6 @@ static thinfat_result_t thinfat_table_search(thinfat_table_t *table, thinfat_clu
   if (!THINFAT_IS_CLUSTER_VALID(ci_initial))
     ci_initial = 2;
   
-  thinfat_cluster_t cc_total = tf->si_hidden + tf->sc_volume_size - tf->si_data;
-
   thinfat_sector_t si_table = tf->si_hidden + tf->sc_reserved + ci_initial / (THINFAT_SECTOR_SIZE >> tf->type);
 
   table->cc_search = cc_search;
@@ -235,7 +240,7 @@ static thinfat_result_t thinfat_table_search(thinfat_table_t *table, thinfat_clu
 
 thinfat_result_t thinfat_table_allocate(void *client, thinfat_table_t *table, thinfat_cluster_t cc_allocate, thinfat_core_event_t event)
 {
-  thinfat_t *tf = (thinfat_t *)table->parent;
+  //thinfat_t *tf = (thinfat_t *)table->parent;
 
   table->client = client;
   table->event = event;

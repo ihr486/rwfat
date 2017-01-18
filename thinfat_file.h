@@ -18,6 +18,7 @@ typedef struct thinfat_file_tag
   void *client;
   struct thinfat_tag *parent;
   thinfat_size_t counter, advance;
+  thinfat_off_t position;
   thinfat_size_t size;
   void *buffer;
   thinfat_blk_t blk;

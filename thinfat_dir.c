@@ -80,7 +80,7 @@ static thinfat_result_t thinfat_dir_traverse(thinfat_dir_t *dir, thinfat_core_ev
   else
     sc_read = 0xFFFFFFFF;
   thinfat_blk_rewind(&dir->blk);
-  return thinfat_blk_read_each_sector(dir, &dir->blk, sc_read, event);
+  return thinfat_blk_read_each_sector(dir, &dir->blk, 0, sc_read, event);
 }
 
 thinfat_result_t thinfat_dir_dump(void *client, thinfat_dir_t *dir, thinfat_core_event_t event)
