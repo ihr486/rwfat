@@ -69,19 +69,23 @@ int main(int argc, const char *argv[])
   thinfat_dir_entry_t entry;
   tfwrap_find_file_by_longname(&tf, L"big.txt", &entry);
 
-  thinfat_open_file(&tf, entry.ci_head);
+  thinfat_open_file(&tf, &entry);
 
-/*#define READ_SIZE (10000000)
+#define READ_SIZE (10000000)
   char *read_buf = (char *)malloc(READ_SIZE);
-  tfwrap_read_file(&tf, read_buf, READ_SIZE);*/
+  tfwrap_read_file(&tf, read_buf, READ_SIZE);
 
-  tfwrap_allocate_cluster(&tf, 50000);
+  //tfwrap_allocate_cluster(&tf, 50000);
 
   thinfat_phy_stop(&phy);
 
   thinfat_finalize(&tf);
 
   thinfat_phy_finalize(&phy);
+
+  FILE *fp = fopen("dump.txt", "w");
+  fwrite(read_buf, READ_SIZE, 1, fp);
+  fclose(fp);
 
   return EXIT_SUCCESS;
 }
