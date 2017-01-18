@@ -138,16 +138,16 @@ static thinfat_result_t thinfat_write_file_callback(thinfat_t *tf, thinfat_secto
 
 static thinfat_result_t thinfat_file_write_finish_callback(thinfat_file_t *file, thinfat_sector_t s_param, void *p_param)
 {
-  size_t advance = THINFAT_SECTOR_SIZE - (tf->cur_file->byte_pointer % THINFAT_SECTOR_SIZE);
-  if (advance > tf->cur_file->byte_advance)
+  size_t advance = THINFAT_SECTOR_SIZE - (file->blk.position % THINFAT_SECTOR_SIZE);
+  if (advance > file->byte_advance)
   {
-    advance = tf->cur_file->byte_advance;
+    advance = file->byte_advance;
   }
   memcpy(*(uint8_t **)p_param + (tf->cur_file->byte_pointer % THINFAT_SECTOR_SIZE), tf->cur_file->user_buffer, advance);
-  tf->cur_file->byte_pointer += advance;
-  tf->cur_file->byte_counter += advance;
+  file->byte_pointer += advance;
+  file->byte_counter += advance;
   //tf->cur_file->byte_advance -= advance;
-  thinfat_cache_touch(tf->cur_file->cache);
+  thinfat_cache_touch(file->blk.cache);
   return thinfat_core_callback(tf, tf->event, THINFAT_INVALID_SECTOR, &tf->cur_file->byte_counter);
 }
 
@@ -157,51 +157,57 @@ thinfat_result_t thinfat_file_read(void *client, thinfat_file_t *file, void *buf
 
   thinfat_sector_t sc_read = ((file->blk.position % THINFAT_SECTOR_SIZE) + size + THINFAT_SECTOR_SIZE - 1) / THINFAT_SECTOR_SIZE;
   thinfat_sector_t si_read = (file->so_current & ((1 << tf->ctos_shift) - 1)) + thinfat_ctos(tf, file->ci_current);
-  if (size > file->size - file->byte_pointer)
-    size = file->size - file->byte_pointer;
+  if (size > file->size - file->blk.position)
+    size = file->size - file->blk.position;
+
   file->advance = size;
   file->buffer = buf;
   file->sc_read = sc_read;
   file->counter = 0;
-  tf->event = event;
-  if (tf->cur_file->byte_pointer % THINFAT_SECTOR_SIZE > 0 || (tf->cur_file->byte_pointer + size) % THINFAT_SECTOR_SIZE > 0)
+  file->event = event;
+  file->client = client;
+
+  if (file->blk.position % THINFAT_SECTOR_SIZE > 0 || (file->blk.position + size) % THINFAT_SECTOR_SIZE > 0)
   {
-    return thinfat_cached_read_single(tf, tf->cur_file->cache, THINFAT_INVALID_SECTOR, THINFAT_CORE_EVENT_READ_FILE_PREPARE);
+    return thinfat_cached_read_single(file, file->blk.cache, THINFAT_INVALID_SECTOR, THINFAT_FILE_EVENT_READ_PREPARE);
   }
   else
   {
-    return thinfat_blk_read_each_cluster(tf, tf->cur_file, si_read, THINFAT_CORE_EVENT_READ_FILE);
+    return thinfat_blk_read_each_cluster(file, &file->blk, si_read, THINFAT_FILE_EVENT_READ);
   }
 }
 
-thinfat_result_t thinfat_file_write(void *client, thinfat_file_t *file, const void *buf, thinfat_size_t size, thinfat_event_t event)
+thinfat_result_t thinfat_file_write(void *client, thinfat_file_t *file, const void *buf, thinfat_size_t size, thinfat_core_event_t event)
 {
   thinfat_t *tf = (thinfat_t *)file->parent;
 
   thinfat_sector_t sc_write = ((file->blk.position % THINFAT_SECTOR_SIZE) + size + THINFAT_SECTOR_SIZE - 1) / THINFAT_SECTOR_SIZE;
   thinfat_sector_t si_write = (file->so_current & ((1 << tf->ctos_shift) - 1)) + thinfat_ctos(tf, file->blk.ci_current);
+
   file->advance = size;
   file->counter = 0;
   file->buffer = (void *)buf;
   file->event = event;
-  if ((tf->cur_file->byte_pointer + size) % THINFAT_SECTOR_SIZE > 0)
+  file->client = client;
+
+  if ((file->blk.position + size) % THINFAT_SECTOR_SIZE > 0)
   {
     sc_write--;
   }
   if (sc_write > 0)
   {
-    if (tf->cur_file->byte_pointer % THINFAT_SECTOR_SIZE == 0)
+    if (file->blk.position % THINFAT_SECTOR_SIZE == 0)
     {
-      return thinfat_blk_write_each_cluster(tf, tf->cur_file, sc_write, THINFAT_CORE_EVENT_WRITE_FILE);
+      return thinfat_blk_write_each_cluster(file, &file->blk, sc_write, THINFAT_FILE_EVENT_WRITE);
     }
     else
     {
-      return thinfat_blk_read_each_sector(tf, tf->cur_file, 1, THINFAT_CORE_EVENT_WRITE_FILE_PREPARE);
+      return thinfat_blk_read_each_sector(file, &file->blk, 1, THINFAT_FILE_EVENT_WRITE_PREPARE);
     }
   }
   else
   {
-    return thinfat_blk_read_each_sector(tf, tf->cur_file, 1, THINFAT_CORE_EVENT_WRITE_FILE_FINISH);
+    return thinfat_blk_read_each_sector(file, &file->blk, 1, THINFAT_FILE_EVENT_WRITE_FINISH);
   }
 }
 

@@ -20,7 +20,15 @@ typedef struct thinfat_table_tag
   struct thinfat_cache_tag *cache;
   union
   {
-    thinfat_sector_t so_seek;
+    struct
+    {
+      thinfat_cluster_t ci_current;
+      thinfat_cluster_t cc_seek;
+    };
+    struct
+    {
+      thinfat_sector_t so_seek;
+    };
     struct
     {
       thinfat_cluster_t cc_search_count;

@@ -11,6 +11,11 @@
 
 #include <stdlib.h>
 
+thinfat_result_t thinfat_table_seek(void *client, thinfat_table_t *table, thinfat_cluster_t ci_current, thinfat_cluster_t cc_seek, thinfat_core_event_t event)
+{
+  thinfat_t *tf = (thinfat_t *)table->parent;
+}
+
 thinfat_result_t thinfat_table_seek(void *client, thinfat_table_t *table, thinfat_sector_t so_seek, thinfat_core_event_t event)
 {
   thinfat_t *tf = (thinfat_t *)table->parent;
