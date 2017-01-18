@@ -37,6 +37,6 @@ thinfat_result_t thinfat_dir_init(thinfat_dir_t *dir, struct thinfat_tag *parent
 thinfat_result_t thinfat_dir_dump(void *client, thinfat_dir_t *dir, thinfat_core_event_t event);
 thinfat_result_t thinfat_dir_find(void *client, thinfat_dir_t *dir, const char *name, thinfat_core_event_t event);
 thinfat_result_t thinfat_dir_find_by_longname(void *client, thinfat_dir_t *dir, const wchar_t *name, thinfat_core_event_t event);
-thinfat_result_t thinfat_dir_open(void *client, thinfat_dir_t *dir, const thinfat_dir_entry_t *entry);
+thinfat_result_t thinfat_dir_open(thinfat_dir_t *dir, thinfat_cluster_t ci);
 
 #endif

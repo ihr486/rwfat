@@ -136,6 +136,8 @@ static thinfat_result_t thinfat_read_parameter_block_callback(thinfat_t *tf, voi
 
   tf->si_root = tf->si_hidden + tf->sc_reserved + tf->sc_table_size * tf->table_redundancy;
 
+  thinfat_dir_open(tf->cur_dir, tf->ci_root);
+
   if (tf->type == THINFAT_TYPE_FAT16)
   {
     tf->ci_next_free = 2;
@@ -238,6 +240,9 @@ thinfat_result_t thinfat_initialize(thinfat_t *tf, struct thinfat_phy_tag *phy)
   tf->cur_dir = (thinfat_dir_t *)malloc(sizeof(thinfat_dir_t));
   thinfat_dir_init(tf->cur_dir, tf, tf->dir_cache);
 
+  tf->cur_file = (thinfat_file_t *)malloc(sizeof(thinfat_file_t));
+  thinfat_file_init(tf->cur_file, tf, tf->file_cache);
+
   return THINFAT_RESULT_OK;
 }
 
@@ -245,10 +250,31 @@ thinfat_result_t thinfat_finalize(thinfat_t *tf)
 {
   free(tf->table);
   free(tf->cur_dir);
+  free(tf->cur_file);
 
   free(tf->table_cache);
   free(tf->dir_cache);
   free(tf->file_cache);
 
   return THINFAT_RESULT_OK;
+}
+
+thinfat_result_t thinfat_dump_current_directory(thinfat_t *tf, thinfat_event_t event)
+{
+  return thinfat_dir_dump(tf, tf->cur_dir, event);
+}
+
+thinfat_result_t thinfat_find_file_by_longname(thinfat_t *tf, const wchar_t *name, thinfat_event_t event)
+{
+  return thinfat_dir_find_by_longname(tf, tf->cur_dir, name, event);
+}
+
+thinfat_result_t thinfat_open_file(thinfat_t *tf, const thinfat_dir_entry_t *entry)
+{
+  return thinfat_file_open(tf->cur_file, entry);
+}
+
+thinfat_result_t thinfat_read_file(thinfat_t *tf, void *buf, size_t size, thinfat_event_t event)
+{
+  return thinfat_file_read(tf, tf->cur_file, buf, size, event);
 }

@@ -27,6 +27,7 @@ thinfat_state_t;
 struct thinfat_phy_tag;
 struct thinfat_table_tag;
 struct thinfat_dir_tag;
+struct thinfat_file_tag;
 struct thinfat_cache_tag;
 
 typedef enum
@@ -43,6 +44,7 @@ typedef struct thinfat_tag
   thinfat_state_t state;
   struct thinfat_phy_tag *phy;
   struct thinfat_dir_tag *cur_dir;
+  struct thinfat_file_tag *cur_file;
   struct thinfat_table_tag *table;
   struct thinfat_cache_tag *table_cache, *dir_cache, *file_cache;
   uint8_t ctos_shift;
@@ -143,5 +145,10 @@ thinfat_result_t thinfat_finalize(thinfat_t *tf);
 thinfat_result_t thinfat_find_partition(thinfat_t *tf, thinfat_event_t event);
 thinfat_result_t thinfat_mount(thinfat_t *tf, thinfat_sector_t sector, thinfat_event_t event);
 thinfat_result_t thinfat_unmount(thinfat_t *tf, thinfat_event_t event);
+
+thinfat_result_t thinfat_dump_current_directory(thinfat_t *tf, thinfat_event_t event);
+thinfat_result_t thinfat_open_file(thinfat_t *tf, const thinfat_dir_entry_t *entry);
+thinfat_result_t thinfat_find_file_by_longname(thinfat_t *tf, const wchar_t *name, thinfat_event_t event);
+thinfat_result_t thinfat_read_file(thinfat_t *tf, void *buf, size_t size, thinfat_event_t event);
 
 #endif

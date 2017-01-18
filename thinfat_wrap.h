@@ -14,6 +14,7 @@ typedef thinfat_result_t tfwrap_result_t;
 tfwrap_result_t tfwrap_find_partition(thinfat_t *tf);
 tfwrap_result_t tfwrap_mount(thinfat_t *tf, thinfat_sector_t si);
 tfwrap_result_t tfwrap_unmount(thinfat_t *tf);
+
 tfwrap_result_t tfwrap_dump_current_directory(thinfat_t *tf);
 tfwrap_result_t tfwrap_find_file(thinfat_t *tf, const char *name, thinfat_dir_entry_t *entry);
 tfwrap_result_t tfwrap_find_file_by_longname(thinfat_t *tf, const wchar_t *longname, thinfat_dir_entry_t *entry);

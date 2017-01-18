@@ -20,17 +20,22 @@ thinfat_result_t thinfat_blk_callback(thinfat_blk_t *blk, thinfat_core_event_t e
   switch(event)
   {
   case THINFAT_BLK_EVENT_READ_SINGLE_LOOKUP:
-    blk->so_current = s_param;
-    blk->ci_current = *(thinfat_cluster_t *)p_param;
-
-    if (blk->ci_current >= 2)
-    {
-      thinfat_sector_t si_read = thinfat_ctos(tf, blk->ci_current) + (blk->so_current & ((1 << tf->ctos_shift) - 1));
-      
-      return thinfat_cached_read_single(blk, blk->cache, si_read, THINFAT_BLK_EVENT_READ_SINGLE);
-    }
+    if (!THINFAT_IS_CLUSTER_VALID(*(thinfat_cluster_t *)p_param))
+      return thinfat_core_callback(blk->client, blk->event, THINFAT_INVALID_SECTOR, NULL);
     else
-      return thinfat_cached_read_single(blk, blk->cache, tf->si_root + blk->so_current, THINFAT_BLK_EVENT_READ_SINGLE);
+    {
+      blk->so_current = s_param;
+      blk->ci_current = *(thinfat_cluster_t *)p_param;
+
+      if (blk->ci_current >= 2)
+      {
+        thinfat_sector_t si_read = thinfat_ctos(tf, blk->ci_current) + (blk->so_current & ((1 << tf->ctos_shift) - 1));
+        
+        return thinfat_cached_read_single(blk, blk->cache, si_read, THINFAT_BLK_EVENT_READ_SINGLE);
+      }
+      else
+        return thinfat_cached_read_single(blk, blk->cache, tf->si_root + blk->so_current, THINFAT_BLK_EVENT_READ_SINGLE);
+    }
   case THINFAT_BLK_EVENT_READ_SINGLE:
     if ((res = thinfat_core_callback(blk->client, blk->event, s_param, *(void **)p_param)) == THINFAT_RESULT_OK)
     {

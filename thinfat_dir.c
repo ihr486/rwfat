@@ -6,6 +6,7 @@
  */
 #include "thinfat.h"
 #include "thinfat_dir.h"
+#include "thinfat_cache.h"
 
 #include <string.h>
 
@@ -26,11 +27,11 @@ thinfat_result_t thinfat_dir_callback(thinfat_dir_t *dir, thinfat_core_event_t e
   switch(event)
   {
   case THINFAT_DIR_EVENT_DUMP:
-    return thinfat_dir_dump_callback(dir, *(void **)p_param);
+    return thinfat_dir_dump_callback(dir, p_param);
   case THINFAT_DIR_EVENT_FIND:
-    return thinfat_dir_find_callback(dir, *(void **)p_param);
+    return thinfat_dir_find_callback(dir, p_param);
   case THINFAT_DIR_EVENT_FIND_BY_LONGNAME:
-    return thinfat_dir_find_by_longname_callback(dir, *(void **)p_param);
+    return thinfat_dir_find_by_longname_callback(dir, p_param);
   }
   return THINFAT_RESULT_OK;
 }
@@ -229,3 +230,13 @@ static thinfat_result_t thinfat_dir_find_by_longname_callback(thinfat_dir_t *dir
   return THINFAT_RESULT_OK;
 }
 
+thinfat_result_t thinfat_dir_open(thinfat_dir_t *dir, thinfat_cluster_t ci)
+{
+  return thinfat_blk_open(&dir->blk, ci);
+}
+
+thinfat_result_t thinfat_dir_init(thinfat_dir_t *dir, thinfat_t *tf, thinfat_cache_t *cache)
+{
+  dir->parent = tf;
+  return thinfat_blk_init(&dir->blk, tf, cache);
+}

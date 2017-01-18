@@ -21,6 +21,7 @@ typedef struct thinfat_file_tag
   thinfat_off_t position;
   thinfat_size_t size;
   void *buffer;
+  thinfat_core_event_t event;
   thinfat_blk_t blk;
 }
 thinfat_file_t;

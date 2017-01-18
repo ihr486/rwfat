@@ -1,6 +1,6 @@
 project(rwfat C)
 cmake_minimum_required(VERSION 2.8)
-add_definitions("-Wall -Wextra -std=c99 -Wno-switch -g -fshort-wchar -Werror=int-conversion")
+add_definitions("-Wall -Wextra -std=c99 -Wno-switch -g -fshort-wchar -Werror=int-conversion -Werror=implicit-function-declaration")
 find_package(Threads REQUIRED)
 add_executable(demo main.c thinfat.c thinfat_blk.c thinfat_cache.c thinfat_phy_posix.c thinfat_wrap.c thinfat_table.c thinfat_dir.c thinfat_file.c)
 target_link_libraries(demo ${CMAKE_THREAD_LIBS_INIT})
