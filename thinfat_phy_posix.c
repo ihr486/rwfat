@@ -162,7 +162,7 @@ thinfat_result_t thinfat_phy_schedule(thinfat_phy_t *phy)
     }
     else if (phy->sc_current < phy->sc_req)
     {
-      void *src = (uint8_t *)phy->mapped_block + THINFAT_SECTOR_SIZE * ((phy->si_req % sc_pagesize) + phy->sc_current);
+      void *src = (uint8_t *)phy->mapped_block + THINFAT_SECTOR_SIZE * (phy->si_req - phy->si_mapped + phy->sc_current);
       memcpy(phy->block, src, THINFAT_SECTOR_SIZE);
       return thinfat_core_callback(phy->client, phy->event, phy->si_req + phy->sc_current++, &phy->block);
     }

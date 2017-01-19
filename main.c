@@ -67,7 +67,7 @@ int main(int argc, const char *argv[])
   tfwrap_dump_current_directory(&tf);
 
   thinfat_dir_entry_t entry;
-  tfwrap_find_file_by_longname(&tf, L"MyLib.lbr", &entry);
+  tfwrap_find_file_by_longname(&tf, L"big.txt", &entry);
 
   thinfat_open_file(&tf, &entry);
 

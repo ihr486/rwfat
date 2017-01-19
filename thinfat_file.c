@@ -86,7 +86,7 @@ static thinfat_result_t thinfat_file_read_callback(thinfat_file_t *file, thinfat
       *(void **)p_param = file->blk.cache->data;
     }
   }
-  //THINFAT_INFO("Read callback @ " TFF_X32 " = %p\n", s_param, *(void **)p_param);
+  THINFAT_INFO("Read callback @ " TFF_X32 " = %p\n", s_param, *(void **)p_param);
   return THINFAT_RESULT_OK;
 }
 
@@ -158,8 +158,6 @@ static thinfat_result_t thinfat_file_write_finish_callback(thinfat_file_t *file,
 
 thinfat_result_t thinfat_file_read(void *client, thinfat_file_t *file, void *buf, thinfat_size_t size, thinfat_core_event_t event)
 {
-  thinfat_t *tf = file->parent;
-
   thinfat_sector_t sc_read = ((file->position % THINFAT_SECTOR_SIZE) + size + THINFAT_SECTOR_SIZE - 1) / THINFAT_SECTOR_SIZE;
   if (size > file->size - file->position)
     size = file->size - file->position;
@@ -182,8 +180,6 @@ thinfat_result_t thinfat_file_read(void *client, thinfat_file_t *file, void *buf
 
 thinfat_result_t thinfat_file_write(void *client, thinfat_file_t *file, const void *buf, thinfat_size_t size, thinfat_core_event_t event)
 {
-  thinfat_t *tf = (thinfat_t *)file->parent;
-
   thinfat_sector_t sc_write = ((file->position % THINFAT_SECTOR_SIZE) + size + THINFAT_SECTOR_SIZE - 1) / THINFAT_SECTOR_SIZE;
 
   file->advance = size;

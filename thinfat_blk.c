@@ -61,6 +61,8 @@ thinfat_result_t thinfat_blk_callback(thinfat_blk_t *blk, thinfat_core_event_t e
       blk->so_current = s_param;
       blk->ci_current = *(thinfat_cluster_t *)p_param;
 
+      THINFAT_INFO("READ_CLUSTER_LOOKUP: " TFF_X32 ", " TFF_X32 "\n", blk->so_current, blk->ci_current);
+
       thinfat_sector_t so_cluster = (blk->so_current & ((1 << tf->ctos_shift) - 1));
       thinfat_sector_t si_read = thinfat_ctos(tf, blk->ci_current) + so_cluster;
       thinfat_sector_t sc_read = (1 << tf->ctos_shift) - so_cluster;
