@@ -68,6 +68,7 @@ thinfat_result_t thinfat_phy_initialize(thinfat_phy_t *phy, const char *devpath)
   sc_pagesize = sysconf(_SC_PAGESIZE) / THINFAT_SECTOR_SIZE;
   pthread_mutex_init(&phy->lock, NULL);
   pthread_cond_init(&phy->cond, NULL);
+  srand((unsigned int)time(NULL));
   return phy->fd < 0 ? THINFAT_RESULT_PHY_ERROR : THINFAT_RESULT_OK;
 }
 
@@ -295,4 +296,10 @@ thinfat_result_t thinfat_phy_get_time(thinfat_phy_t *phy, thinfat_time_t *data)
   data->minute = ts->tm_min;
   data->second2 = ts->tm_sec;
   return THINFAT_RESULT_OK;
+}
+
+uint32_t thinfat_phy_get_rand32(thinfat_phy_t *phy)
+{
+  (void)phy;
+  return (uint32_t)rand();
 }

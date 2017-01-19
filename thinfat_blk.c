@@ -198,13 +198,13 @@ thinfat_result_t thinfat_blk_read_each_cluster(void *client, thinfat_blk_t *blk,
 
 thinfat_result_t thinfat_blk_write_each_cluster(void *client, thinfat_blk_t *blk, thinfat_sector_t so_write, thinfat_sector_t sc_write, thinfat_core_event_t event)
 {
+  thinfat_t *tf = (thinfat_t *)blk->parent;
   if (!THINFAT_IS_CLUSTER_VALID(blk->ci_current))
     return THINFAT_RESULT_EOF;
-  else if (so_write < blk->so_current || blk->so_current + 1 < so_write)
+  else if (so_read >> tf->ctos_shift < blk->so_current >> tf->ctos_shift)
     return THINFAT_RESULT_POINTER_LEAP;
   else
   {
-    thinfat_t *tf = (thinfat_t *)blk->parent;
     blk->event = event;
     blk->sc_write = sc_write;
     blk->client = client;
