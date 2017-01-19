@@ -9,6 +9,7 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 #include <sys/mman.h>
 #include <sys/fcntl.h>
 #include <unistd.h>
@@ -29,8 +30,13 @@ static void *thinfat_phy_execute(void *arg)
   thinfat_phy_t *phy = (thinfat_phy_t *)arg;
   while(!phy->exit_flag)
   {
+    thinfat_result_t res;
     pthread_mutex_lock(&phy->lock);
-    thinfat_phy_schedule(phy);
+    if ((res = thinfat_phy_schedule(phy)) != THINFAT_RESULT_OK)
+    {
+      fprintf(stderr, "Error %d detected.\n", res);
+      exit(-1);
+    }
     pthread_mutex_unlock(&phy->lock);
     sleep(0);
   }
@@ -186,7 +192,7 @@ thinfat_result_t thinfat_phy_schedule(thinfat_phy_t *phy)
     }
     else if (phy->sc_current < phy->sc_req)
     {
-      void *dest = (uint8_t *)phy->mapped_block + THINFAT_SECTOR_SIZE * ((phy->si_req % sc_pagesize) + phy->sc_current);
+      void *dest = (uint8_t *)phy->mapped_block + THINFAT_SECTOR_SIZE * (phy->si_req - phy->si_mapped + phy->sc_current);
       memcpy(dest, phy->block, THINFAT_SECTOR_SIZE);
       phy->sc_current++;
       if (phy->sc_current < phy->sc_req)

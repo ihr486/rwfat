@@ -71,10 +71,19 @@ int main(int argc, const char *argv[])
 
   thinfat_open_file(&tf, &entry);
 
-  size_t read;
+  size_t read = 0;
 #define READ_SIZE (10000000)
   char *read_buf = (char *)malloc(READ_SIZE);
-  tfwrap_read_file(&tf, read_buf, READ_SIZE, &read);
+  for (int i = 0; i < 1000; i++)
+  {
+    size_t read1;
+    if (tfwrap_read_file(&tf, read_buf + READ_SIZE / 1000 * i, READ_SIZE / 1000, &read1) != THINFAT_RESULT_OK)
+    {
+      fprintf(stderr, "Failed to read from file.\n");
+      return -1;
+    }
+    read += read1;
+  }
 
   printf("%u bytes read.\n", read);
 

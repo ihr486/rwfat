@@ -59,11 +59,20 @@ thinfat_result_t thinfat_cached_read_single(void *client, thinfat_cache_t *cache
   switch(cache->state)
   {
   case THINFAT_CACHE_STATE_INVALID:
+    if (!THINFAT_IS_SECTOR_VALID(si_read))
+    {
+      return thinfat_core_callback(client, event, THINFAT_INVALID_SECTOR, NULL);
+    }
     cache->event = event;
     cache->client = client;
     return thinfat_phy_read_single(cache, tf->phy, si_read, cache->data, THINFAT_CACHE_EVENT_READ);
   case THINFAT_CACHE_STATE_CLEAN:
-    if (cache->si_cached == si_read)
+    if (!THINFAT_IS_SECTOR_VALID(si_read))
+    {
+      cache->state = THINFAT_CACHE_STATE_INVALID;
+      return thinfat_core_callback(client, event, THINFAT_INVALID_SECTOR, NULL);
+    }
+    else if (cache->si_cached == si_read)
     {
       void *data = cache->data;
       return thinfat_core_callback(client, event, si_read, &data);
