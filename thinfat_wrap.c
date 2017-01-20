@@ -88,13 +88,13 @@ thinfat_result_t tfwrap_read_file(thinfat_t *tf, void *buf, size_t size, size_t 
   return thinfat_phy_leave(tf->phy, thinfat_read_file(tf, buf, size, THINFAT_EVENT_READ_FILE));
 }
 
-/*thinfat_result_t tfwrap_write_file(thinfat_t *tf, const void *buf, size_t size, size_t *written)
+thinfat_result_t tfwrap_write_file(thinfat_t *tf, const void *buf, size_t size, size_t *written)
 {
   thinfat_phy_enter(tf->phy);
   tf->phy->arg = buf;
   tf->phy->arg2 = written;
   return thinfat_phy_leave(tf->phy, thinfat_write_file(tf, buf, size, THINFAT_EVENT_WRITE_FILE));
-}*/
+}
 
 thinfat_result_t tfwrap_allocate_cluster(thinfat_t *tf, thinfat_cluster_t cc_allocate)
 {

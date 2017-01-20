@@ -201,7 +201,7 @@ thinfat_result_t thinfat_blk_write_each_cluster(void *client, thinfat_blk_t *blk
   thinfat_t *tf = (thinfat_t *)blk->parent;
   if (!THINFAT_IS_CLUSTER_VALID(blk->ci_current))
     return THINFAT_RESULT_EOF;
-  else if (so_read >> tf->ctos_shift < blk->so_current >> tf->ctos_shift)
+  else if (so_write >> tf->ctos_shift < blk->so_current >> tf->ctos_shift)
     return THINFAT_RESULT_POINTER_LEAP;
   else
   {

@@ -67,11 +67,24 @@ int main(int argc, const char *argv[])
   tfwrap_dump_current_directory(&tf);
 
   thinfat_dir_entry_t entry;
-  tfwrap_find_file_by_longname(&tf, L"big.txt", &entry);
+  tfwrap_find_file_by_longname(&tf, L"output.txt", &entry);
 
   thinfat_open_file(&tf, &entry);
 
-  size_t read = 0;
+  FILE *fp = fopen("sample.pdf", "rb");
+  size_t read, written;
+#define WRITE_SIZE (10000000)
+  char *write_buf = (char *)malloc(WRITE_SIZE);
+  read = fread(write_buf, 1, WRITE_SIZE, fp);
+  printf("Writing %u bytes...\n", read);
+  if (tfwrap_write_file(&tf, write_buf, read, &written) != THINFAT_RESULT_OK)
+  {
+    fprintf(stderr, "Failed to write to file.\n");
+    return -1;
+  }
+  fclose(fp);
+
+  /*size_t read = 0;
 #define READ_SIZE (10000000)
   char *read_buf = (char *)malloc(READ_SIZE);
   for (int i = 0; i < 1000; i++)
@@ -98,7 +111,7 @@ int main(int argc, const char *argv[])
   FILE *fp = fopen("dump.txt", "wb");
   printf("%u bytes read.\n", read);
   printf("%u\n", fwrite(read_buf, read, 1, fp));
-  fclose(fp);
+  fclose(fp);*/
 
   return EXIT_SUCCESS;
 }

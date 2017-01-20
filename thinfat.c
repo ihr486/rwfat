@@ -278,3 +278,8 @@ thinfat_result_t thinfat_read_file(thinfat_t *tf, void *buf, size_t size, thinfa
 {
   return thinfat_file_read(tf, tf->cur_file, buf, size, event);
 }
+
+thinfat_result_t thinfat_write_file(thinfat_t *tf, const void *buf, size_t size, thinfat_event_t event)
+{
+  return thinfat_file_write(tf, tf->cur_file, buf, size, event);
+}

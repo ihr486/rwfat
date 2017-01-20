@@ -111,7 +111,7 @@ static thinfat_result_t thinfat_phy_remap(thinfat_phy_t *phy)
       munmap(phy->mapped_block, THINFAT_SECTOR_SIZE * phy->sc_mapped);
     phy->si_mapped = phy->si_req / sc_pagesize * sc_pagesize;
     phy->sc_mapped = ((phy->si_req % sc_pagesize) + phy->sc_req + sc_pagesize - 1) / sc_pagesize * sc_pagesize;
-    phy->mapped_block = mmap(NULL, THINFAT_SECTOR_SIZE * phy->sc_mapped, PROT_READ/* | PROT_WRITE*/, MAP_SHARED, phy->fd, THINFAT_SECTOR_SIZE * phy->si_mapped);
+    phy->mapped_block = mmap(NULL, THINFAT_SECTOR_SIZE * phy->sc_mapped, PROT_READ | PROT_WRITE, MAP_SHARED, phy->fd, THINFAT_SECTOR_SIZE * phy->si_mapped);
     if (phy->mapped_block == (void *)-1)
       return THINFAT_RESULT_PHY_ERROR;
   }

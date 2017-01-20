@@ -150,5 +150,6 @@ thinfat_result_t thinfat_dump_current_directory(thinfat_t *tf, thinfat_event_t e
 thinfat_result_t thinfat_open_file(thinfat_t *tf, const thinfat_dir_entry_t *entry);
 thinfat_result_t thinfat_find_file_by_longname(thinfat_t *tf, const wchar_t *name, thinfat_event_t event);
 thinfat_result_t thinfat_read_file(thinfat_t *tf, void *buf, size_t size, thinfat_event_t event);
+thinfat_result_t thinfat_write_file(thinfat_t *tf, const void *buf, size_t size, thinfat_event_t event);
 
 #endif
